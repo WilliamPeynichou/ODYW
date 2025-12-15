@@ -1,6 +1,6 @@
 
 // Tout les messages renvoyés par l'API pour les commentaires
-export const message = {
+export const messages = {
     commentAdded: 'Commentaire ajouté avec succès;',
     commentUpdated: 'Commentaire modifié.',
     commentDeleted: 'Commentaire supprimé.',
