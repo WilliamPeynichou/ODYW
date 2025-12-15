@@ -1,12 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../layout/header';
 import Footer from '../layout/footer';
 import Carrousel from './features/carroussel';
 import ProductList from './features/videoCard';
 
 const Home = () => {
-  // Exemple de données vidéos - à remplacer par un fetch depuis le backend
-  const videos = [];
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les vidéos depuis le backend
+  useEffect(() => {
+    const loadVideos = async () => {
+      try {
+        setLoading(true);
+        
+        // TODO: Remplacer par votre endpoint API
+        // const response = await fetch('http://localhost:3000/api/videos');
+        // const data = await response.json();
+        // setVideos(data);
+        
+        // Pour l'instant, tableau vide - les vidéos de test sont dans le carrousel
+        setVideos([]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des vidéos:', error);
+        setVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVideos();
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
