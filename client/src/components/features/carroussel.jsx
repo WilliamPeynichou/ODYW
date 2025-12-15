@@ -1,167 +1,209 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const Carrousel = ({ videos = [] }) => {
-  // Images de test par défaut si aucune vidéo n'est fournie
-  const defaultImages = [
+  // Vidéos de test par défaut si aucune vidéo n'est fournie
+  const defaultVideos = [
     {
-      url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+      id: 1,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-      title: 'Montagne',
-      type: 'image'
+      title: 'Aventure en montagne',
+      description: 'Découvrez cette magnifique aventure'
     },
     {
-      url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800',
+      id: 2,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800',
-      title: 'Océan',
-      type: 'image'
+      title: 'Plage paradisiaque',
+      description: 'Un moment de détente au bord de l\'océan'
     },
     {
-      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+      id: 3,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
-      title: 'Plage',
-      type: 'image'
+      title: 'Forêt mystérieuse',
+      description: 'Exploration d\'une forêt enchantée'
     },
     {
-      url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
+      id: 4,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
-      title: 'Forêt',
-      type: 'image'
+      title: 'Coucher de soleil',
+      description: 'Un magnifique coucher de soleil'
     },
     {
-      url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
+      id: 5,
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
       thumbnail: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
-      title: 'Paysage',
-      type: 'image'
+      title: 'Voyage en ville',
+      description: 'Découvrez la vie urbaine'
     }
   ];
 
-  const items = videos.length > 0 ? videos : defaultImages;
+  // Fonction pour mélanger aléatoirement un tableau
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Mélanger les vidéos de manière aléatoire au chargement
+  const [shuffledVideos, setShuffledVideos] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRefs = useRef({});
+
+  useEffect(() => {
+    const videosToUse = videos.length > 0 ? videos : defaultVideos;
+    setShuffledVideos(shuffleArray(videosToUse));
+  }, [videos]);
 
   // Navigation vers l'élément précédent
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? items.length - 1 : prevIndex - 1
+      prevIndex === 0 ? shuffledVideos.length - 1 : prevIndex - 1
     );
-    setIsPlaying(false);
   };
 
   // Navigation vers l'élément suivant
   const goToNext = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === items.length - 1 ? 0 : prevIndex + 1
+      prevIndex === shuffledVideos.length - 1 ? 0 : prevIndex + 1
     );
-    setIsPlaying(false);
   };
 
   // Aller à un élément spécifique
   const goToItem = (index) => {
     setCurrentIndex(index);
-    setIsPlaying(false);
   };
 
   // Calculer les index précédent et suivant
   const getPreviousIndex = () => 
-    currentIndex === 0 ? items.length - 1 : currentIndex - 1;
+    currentIndex === 0 ? shuffledVideos.length - 1 : currentIndex - 1;
   
   const getNextIndex = () => 
-    currentIndex === items.length - 1 ? 0 : currentIndex + 1;
+    currentIndex === shuffledVideos.length - 1 ? 0 : currentIndex + 1;
 
-  // Réinitialiser l'index si les éléments changent
-  useEffect(() => {
-    if (currentIndex >= items.length && items.length > 0) {
-      setCurrentIndex(0);
+  // Gérer la lecture automatique au survol
+  const handleMouseEnter = (videoId, videoElement) => {
+    if (videoElement) {
+      videoElement.play().catch(err => console.log('Erreur de lecture:', err));
     }
-  }, [items.length, currentIndex]);
+  };
 
-  if (!items || items.length === 0) {
+  const handleMouseLeave = (videoId, videoElement) => {
+    if (videoElement) {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    }
+  };
+
+  // Limiter la durée de lecture à 60 secondes maximum
+  const handleTimeUpdate = (e) => {
+    const videoElement = e.target;
+    if (videoElement && videoElement.currentTime >= 60) {
+      videoElement.pause();
+      videoElement.currentTime = 60; // S'assurer qu'on reste à 60 secondes
+    }
+  };
+
+  // Gérer la métadonnée chargée pour limiter la durée
+  const handleLoadedMetadata = (e) => {
+    const videoElement = e.target;
+    // Si la vidéo fait plus de 60 secondes, on limite la lecture
+    if (videoElement.duration > 60) {
+      // L'événement timeupdate gérera déjà la limite
+    }
+  };
+
+  if (!shuffledVideos || shuffledVideos.length === 0) {
     return (
       <div className="flex items-center justify-center w-full h-96 bg-gray-100 rounded-lg">
-        <p className="text-gray-500">Aucun contenu disponible</p>
+        <p className="text-gray-500">Aucune vidéo disponible</p>
       </div>
     );
   }
 
-  const currentItem = items[currentIndex];
-  const previousItem = items[getPreviousIndex()];
-  const nextItem = items[getNextIndex()];
-  const isVideo = currentItem?.type === 'video' || currentItem?.url?.includes('.mp4') || currentItem?.src?.includes('.mp4');
+  const currentVideo = shuffledVideos[currentIndex];
+  const previousVideo = shuffledVideos[getPreviousIndex()];
+  const nextVideo = shuffledVideos[getNextIndex()];
 
   return (
     <div className="relative w-full max-w-7xl mx-auto px-4">
-      {/* Conteneur principal avec les trois éléments */}
+      {/* Conteneur principal avec les trois vidéos */}
       <div className="relative flex items-center gap-4">
-        {/* Élément précédent (transparent) */}
-        {items.length > 1 && (
+        {/* Vidéo précédente (transparente) */}
+        {shuffledVideos.length > 1 && (
           <div 
             className="flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
             onClick={goToPrevious}
             style={{ aspectRatio: '16/9' }}
+            onMouseEnter={() => {
+              const videoEl = videoRefs.current[`prev-${previousVideo.id}`];
+              handleMouseEnter(previousVideo.id, videoEl);
+            }}
+            onMouseLeave={() => {
+              const videoEl = videoRefs.current[`prev-${previousVideo.id}`];
+              handleMouseLeave(previousVideo.id, videoEl);
+            }}
           >
-            {previousItem?.type === 'video' || previousItem?.url?.includes('.mp4') ? (
-              <video
-                className="w-full h-full object-cover rounded-lg"
-                src={previousItem?.url || previousItem?.src}
-                poster={previousItem?.thumbnail || previousItem?.poster}
-                muted
-              />
-            ) : (
-              <img
-                className="w-full h-full object-cover rounded-lg"
-                src={previousItem?.url || previousItem?.thumbnail || previousItem?.src}
-                alt={previousItem?.title || 'Précédent'}
-              />
-            )}
+            <video
+              ref={(el) => videoRefs.current[`prev-${previousVideo.id}`] = el}
+              className="w-full h-full object-cover rounded-lg"
+              src={previousVideo?.url || previousVideo?.src}
+              poster={previousVideo?.thumbnail || previousVideo?.poster}
+              muted
+              loop
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+            />
           </div>
         )}
 
-        {/* Élément actuel (centré) */}
+        {/* Vidéo actuelle (centrée) */}
         <div className="flex-1 relative" style={{ aspectRatio: '16/9' }}>
           <div className="relative w-full h-full rounded-lg overflow-hidden bg-black">
-            {isVideo ? (
-              <video
-                key={currentIndex}
-                className="w-full h-full object-cover"
-                controls
-                autoPlay={isPlaying}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                src={currentItem?.url || currentItem?.src}
-                poster={currentItem?.thumbnail || currentItem?.poster}
-              >
-                Votre navigateur ne supporte pas la lecture de vidéos.
-              </video>
-            ) : (
-              <img
-                key={currentIndex}
-                className="w-full h-full object-cover"
-                src={currentItem?.url || currentItem?.thumbnail || currentItem?.src}
-                alt={currentItem?.title || 'Image actuelle'}
-              />
-            )}
+            <video
+              ref={(el) => videoRefs.current[`current-${currentVideo.id}`] = el}
+              key={currentIndex}
+              className="w-full h-full object-cover"
+              controls
+              autoPlay
+              src={currentVideo?.url || currentVideo?.src}
+              poster={currentVideo?.thumbnail || currentVideo?.poster}
+              onMouseEnter={() => {
+                const videoEl = videoRefs.current[`current-${currentVideo.id}`];
+                handleMouseEnter(currentVideo.id, videoEl);
+              }}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+            >
+              Votre navigateur ne supporte pas la lecture de vidéos.
+            </video>
 
-            {/* Informations de l'élément (optionnel) */}
-            {currentItem?.title && (
+            {/* Informations de la vidéo */}
+            {currentVideo?.title && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                 <h3 className="text-white font-semibold text-lg">
-                  {currentItem.title}
+                  {currentVideo.title}
                 </h3>
-                {currentItem?.description && (
+                {currentVideo?.description && (
                   <p className="text-white/80 text-sm mt-1">
-                    {currentItem.description}
+                    {currentVideo.description}
                   </p>
                 )}
               </div>
             )}
           </div>
 
-          {/* Flèche gauche (grande et cliquable) */}
-          {items.length > 1 && (
+          {/* Flèche gauche */}
+          {shuffledVideos.length > 1 && (
             <button
               onClick={goToPrevious}
               className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
-              aria-label="Élément précédent"
+              aria-label="Vidéo précédente"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -180,12 +222,12 @@ const Carrousel = ({ videos = [] }) => {
             </button>
           )}
 
-          {/* Flèche droite (grande et cliquable) */}
-          {items.length > 1 && (
+          {/* Flèche droite */}
+          {shuffledVideos.length > 1 && (
             <button
               onClick={goToNext}
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
-              aria-label="Élément suivant"
+              aria-label="Vidéo suivante"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -205,55 +247,35 @@ const Carrousel = ({ videos = [] }) => {
           )}
         </div>
 
-        {/* Élément suivant (transparent) */}
-        {items.length > 1 && (
+        {/* Vidéo suivante (transparente) */}
+        {shuffledVideos.length > 1 && (
           <div 
             className="flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
             onClick={goToNext}
             style={{ aspectRatio: '16/9' }}
+            onMouseEnter={() => {
+              const videoEl = videoRefs.current[`next-${nextVideo.id}`];
+              handleMouseEnter(nextVideo.id, videoEl);
+            }}
+            onMouseLeave={() => {
+              const videoEl = videoRefs.current[`next-${nextVideo.id}`];
+              handleMouseLeave(nextVideo.id, videoEl);
+            }}
           >
-            {nextItem?.type === 'video' || nextItem?.url?.includes('.mp4') ? (
-              <video
-                className="w-full h-full object-cover rounded-lg"
-                src={nextItem?.url || nextItem?.src}
-                poster={nextItem?.thumbnail || nextItem?.poster}
-                muted
-              />
-            ) : (
-              <img
-                className="w-full h-full object-cover rounded-lg"
-                src={nextItem?.url || nextItem?.thumbnail || nextItem?.src}
-                alt={nextItem?.title || 'Suivant'}
-              />
-            )}
+            <video
+              ref={(el) => videoRefs.current[`next-${nextVideo.id}`] = el}
+              className="w-full h-full object-cover rounded-lg"
+              src={nextVideo?.url || nextVideo?.src}
+              poster={nextVideo?.thumbnail || nextVideo?.poster}
+              muted
+              loop
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+            />
           </div>
         )}
       </div>
 
-      {/* Indicateurs de position */}
-      {items.length > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          {items.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToItem(index)}
-              className={`h-2 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'bg-blue-600 w-8'
-                  : 'bg-gray-300 w-2 hover:bg-gray-400'
-              }`}
-              aria-label={`Aller à l'élément ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Compteur */}
-      {items.length > 1 && (
-        <div className="text-center mt-2 text-sm text-gray-600">
-          {currentIndex + 1} / {items.length}
-        </div>
-      )}
     </div>
   );
 };
