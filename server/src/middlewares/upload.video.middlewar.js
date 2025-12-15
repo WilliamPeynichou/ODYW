@@ -14,8 +14,9 @@ const storage = multer.diskStorage({
         // extension du fichier
         const ext = path.extname(file.originalname);
         // nom du fichier avec l'id de la video et la date de creation
-
-        const filename = `video-${req.params.id}-${Date.now()}${ext}`;
+        // Vérifier si req.params.id existe, sinon utiliser un identifiant unique
+        const videoId = req.params?.id || `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        const filename = `video-${videoId}-${Date.now()}${ext}`;
         cb(null, filename);
     },
 });
@@ -56,6 +57,17 @@ const validateVideoDuration = (req, res, next) => {
             }
             return res.status(400).json({ 
                 error: 'Impossible d\'analyser la vidéo. Veuillez vérifier que le fichier est valide.' 
+            });
+        }
+
+        // Vérifier que les métadonnées et la durée existent
+        if (!metadata || !metadata.format || typeof metadata.format.duration !== 'number') {
+            // Supprimer le fichier si les métadonnées sont incomplètes
+            if (fs.existsSync(videoPath)) {
+                fs.unlink(videoPath, () => {}); // Suppression asynchrone, ignorer les erreurs
+            }
+            return res.status(400).json({ 
+                error: 'Impossible d\'obtenir la durée de la vidéo. Le fichier peut être corrompu ou invalide.' 
             });
         }
 
