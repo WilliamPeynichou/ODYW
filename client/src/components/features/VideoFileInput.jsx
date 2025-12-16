@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 
-const VideoFileInput = ({ file, onChange, error }) => {
+const VideoFileInput = ({ file, onChange, error, required = true, label = 'Vidéo' }) => {
   const fileInputRef = useRef(null);
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState('');
@@ -102,7 +102,7 @@ const VideoFileInput = ({ file, onChange, error }) => {
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">
-        Fichier vidéo <span className="text-red-500">*</span>
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       
       <div className="mt-1">
