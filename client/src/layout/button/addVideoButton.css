@@ -1,0 +1,65 @@
+.add-video-button {
+  --bg-color-1: #121212;
+  --bg-color-2: #002aff;
+  --bg-color-3: #ff00cc;
+  --padding: 1rem 2rem;
+  --font-family: monospace;
+  --step: 0.5rem;
+  --active: 0;
+  
+  color: white;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: bold;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.add-video-button:is(:hover, :focus-visible) {
+  --active: 1;
+}
+
+.add-video-button span:first-of-type {
+  padding: var(--padding);
+}
+
+.add-video-button span:not(:first-of-type) {
+  position: absolute;
+}
+
+.add-video-button [aria-hidden] {
+  color: transparent;
+}
+
+.add-video-button span {
+  inset: 0;
+  display: grid;
+  background: var(--bg);
+  place-items: center;
+  transition: 0.2s ease;
+  border: 2px solid black;
+  translate:
+    calc((var(--active) * var(--coefficient, 0)) * (var(--step) * -1))
+    calc((var(--active) * var(--coefficient, 0)) * (var(--step) * -1));
+}
+
+.add-video-button span:nth-of-type(1) {
+  --bg: var(--bg-color-3);
+}
+
+.add-video-button span:nth-of-type(2) {
+  --coefficient: 1;
+  --bg: var(--bg-color-2);
+}
+
+.add-video-button span:nth-of-type(3) {
+  --coefficient: 2;
+  --bg: var(--bg-color-1);
+}
+
+.add-video-button:active {
+  --active: 0.5;
+}
