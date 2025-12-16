@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchRandomVideos } from '../../service/videoService';
+import { getAllVideos } from '../../service/videoService';
 
 // Composant pour une carte vidéo individuelle
 const VideoCard = ({ video }) => {
@@ -75,20 +75,28 @@ const ProductList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fonction pour charger les vidéos aléatoires
+  // Fonction pour charger les vidéos depuis l'API
   const loadVideos = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // TODO: Remplacer par votre endpoint API quand disponible
-      // const response = await fetch('/api/videos');
-      // const data = await response.json();
-      // setVideos(data);
+      // Récupérer toutes les vidéos depuis l'API
+      const videosData = await getAllVideos();
       
-      // Pour l'instant, générer des vidéos aléatoires
-      const randomVideos = await fetchRandomVideos(24); // Générer 24 vidéos aléatoires
-      setVideos(randomVideos);
+      // Mapper les données de l'API vers le format attendu par le composant
+      const mappedVideos = videosData.map(video => ({
+        id: video.id,
+        title: video.title,
+        url: video.video_url ? `http://localhost:3000/${video.video_url}` : null,
+        thumbnail: null, // Pas de thumbnail pour l'instant
+        createdAt: video.created_at || video.createdAt,
+        theme_name: video.theme_name,
+        duration: video.duration,
+        size_mb: video.size_mb,
+      }));
+      
+      setVideos(mappedVideos);
     } catch (err) {
       setError('Erreur lors du chargement des vidéos');
       console.error(err);
