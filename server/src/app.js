@@ -4,11 +4,14 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import testRoutes from './routes/test.route.js';
+
+import commentRoutes from './routes/comments.js';
 import videosRoutes from './routes/videos.route.js';
 import themesRoutes from './routes/themes.route.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 const app = express();
 
@@ -26,8 +29,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // les routes
 app.use('/api/test', testRoutes);
+
+app.use('/api/comments', commentRoutes);
+
 app.use('/api/videos', videosRoutes);
 app.use('/api/themes', themesRoutes);
+
 
 app.use((err, req, res, next) => {
     console.error(err);

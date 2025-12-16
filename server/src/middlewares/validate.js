@@ -1,7 +1,7 @@
 // Middleware pour valider les inputs des commentaires
 
 import { z } from 'zod';
-import { messages } from '../utils/messages';
+import { messages } from '../utils/messages.js';
 
 export const validateComment = (req, res, next) => {
     // On définit le schéma de validation
