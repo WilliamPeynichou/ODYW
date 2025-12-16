@@ -1,0 +1,234 @@
+/* Variables CSS */
+:root {
+  --comment-padding: 16px;
+}
+
+/* Reset et base */
+.comment-notification-wrapper *,
+.comment-notification-wrapper *::before,
+.comment-notification-wrapper *::after {
+  box-sizing: border-box;
+}
+
+.comment-notification-wrapper ::selection {
+  background: none;
+}
+
+/* Conteneur principal */
+.comment-notification-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: calc(var(--comment-padding) / 2);
+}
+
+/* Arrière-plans pour l'effet parallaxe */
+.comment-bg-before,
+.comment-bg-after {
+  will-change: opacity;
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.comment-bg-before {
+  z-index: -1;
+  background: #151F33 url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/345377/mojave-night.jpg') no-repeat center center / cover;
+}
+
+.comment-bg-after {
+  z-index: -2;
+  background: #B27247 url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/345377/mojave-day.jpg') no-repeat center center / cover;
+}
+
+/* Liste de commentaires */
+.comment-list {
+  opacity: 0;
+  will-change: opacity, transform;
+  perspective: 800px;
+  margin-bottom: var(--comment-padding);
+  position: relative;
+}
+
+.comment-list.visible {
+  opacity: 1;
+}
+
+/* Items de commentaire */
+.comment-item {
+  position: relative;
+  padding: calc(var(--comment-padding) / 2);
+}
+
+.comment-item:not(:first-child) {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.comment-item:not(:first-child) .notification-bg-before,
+.comment-item:not(:first-child) .notification-bg-after {
+  filter: blur(var(--comment-padding));
+}
+
+.comment-item:nth-child(1) {
+  z-index: 3;
+}
+
+.comment-item:nth-child(1) .notification {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.comment-item:nth-child(1) .notification-bg-before,
+.comment-item:nth-child(1) .notification-bg-after {
+  filter: saturate(130%) blur(var(--comment-padding));
+}
+
+.comment-item:nth-child(2) {
+  transform: translateY(var(--comment-padding)) translateZ(calc(-1 * var(--comment-padding) * 4));
+  z-index: 2;
+}
+
+.comment-item:nth-child(2) .notification {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.comment-item:nth-child(3) {
+  transform: translateY(calc(var(--comment-padding) * 2)) translateZ(calc(-1 * var(--comment-padding) * 8));
+  z-index: 1;
+}
+
+.comment-item:nth-child(3) .notification {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Container de notification */
+.notification-container {
+  clip-path: inset(0 0 0 0 round var(--comment-padding) var(--comment-padding) var(--comment-padding) var(--comment-padding));
+}
+
+/* Notification */
+.notification {
+  position: relative;
+  overflow: hidden;
+  min-height: 116px;
+  padding: var(--comment-padding);
+  border-radius: var(--comment-padding);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: black;
+  transition: background-color 1s ease, color 1.75s ease;
+}
+
+.notification.dark-mode {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.notification header,
+.notification .more {
+  opacity: 0.75;
+}
+
+.notification header {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: calc(var(--comment-padding) * 0.5);
+  font-size: calc(var(--comment-padding) * 0.75);
+}
+
+.notification header h2 {
+  text-transform: uppercase;
+  margin: 0;
+  font-size: calc(var(--comment-padding) * 0.75);
+  font-weight: 600;
+}
+
+.notification header .timestamp {
+  text-transform: lowercase;
+  font-size: calc(var(--comment-padding) * 0.75);
+}
+
+.notification .content {
+  margin-top: calc(var(--comment-padding) * 0.5);
+}
+
+.notification .content span {
+  display: block;
+  line-height: 1.4;
+}
+
+.notification .content .message {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: calc(var(--comment-padding) * 0.25);
+}
+
+.notification .content .sender,
+.notification .content .event {
+  font-weight: 600;
+}
+
+.notification .content .more {
+  margin-top: calc(var(--comment-padding) * 0.25);
+  font-size: calc(var(--comment-padding) * 0.75);
+}
+
+/* Arrière-plans de notification pour effet parallaxe */
+.notification-bg-before,
+.notification-bg-after {
+  will-change: opacity;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.notification-bg-before {
+  z-index: -1;
+  background: #151F33 url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/345377/mojave-night.jpg') no-repeat center center / cover;
+}
+
+.notification-bg-after {
+  z-index: -2;
+  background: #B27247 url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/345377/mojave-day.jpg') no-repeat center center / cover;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comment-list.animate-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+/* Responsive */
+@media screen and (max-width: 640px) {
+  .comment-notification-wrapper {
+    max-width: 100%;
+    padding: calc(var(--comment-padding) / 4);
+  }
+  
+  .notification {
+    min-height: auto;
+    padding: calc(var(--comment-padding) * 0.75);
+  }
+}
+
