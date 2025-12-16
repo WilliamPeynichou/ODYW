@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
 import { CommentList } from './Comment';
+import { getVideoById } from '../../service/videoService';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -25,28 +26,27 @@ const VideoDetails = () => {
       setLoading(true);
       setError(null);
 
-      // TODO: Remplacer par votre endpoint API
-      // const response = await fetch(`/api/videos/${id}`);
-      // const data = await response.json();
-      // setVideo(data);
-
-      // Données fictives pour tester
-      const mockVideo = {
-        id: parseInt(id),
-        title: 'Aventure en montagne',
-        description: 'Découvrez cette magnifique aventure en montagne avec des paysages à couper le souffle. Une expérience inoubliable à partager.',
-        url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-        likes: 245,
-        views: 1234,
-        createdAt: '2024-01-15T10:30:00Z',
-        author: 'Explorateur Pro',
-        category: 'Aventure'
+      // Récupérer la vidéo depuis l'API
+      const videoData = await getVideoById(id);
+      
+      // Mapper les données de l'API vers le format attendu par le composant
+      const mappedVideo = {
+        id: videoData.id,
+        title: videoData.title || 'Sans titre',
+        description: videoData.description || 'Aucune description disponible.',
+        url: videoData.video_url ? `http://localhost:3000/${videoData.video_url}` : null,
+        thumbnail: null, // Pas de thumbnail pour l'instant
+        likes: 0, // Pas de système de likes pour l'instant
+        views: 0, // Pas de système de vues pour l'instant
+        createdAt: videoData.created_at || videoData.createdAt,
+        author: 'Auteur', // Pas d'auteur pour l'instant
+        category: videoData.theme_name || null,
+        duration: videoData.duration,
+        size_mb: videoData.size_mb,
       };
 
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setVideo(mockVideo);
-      setLikesCount(mockVideo.likes);
+      setVideo(mappedVideo);
+      setLikesCount(mappedVideo.likes);
     } catch (err) {
       setError('Erreur lors du chargement de la vidéo');
       console.error(err);
