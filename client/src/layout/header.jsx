@@ -1,4 +1,5 @@
 import React from 'react';
+import AddVideoButton from './button/addVideoButton';
 
 const Header = () => {
   return (
@@ -7,6 +8,9 @@ const Header = () => {
         <a href="/" className="text-xl font-normal text-gray-900">
           ODYWP
         </a>
+      </div>
+      <div className="flex items-center">
+        <AddVideoButton />
       </div>
     </header>
   );
