@@ -1,15 +1,25 @@
-import { pool } from '../db/index.js';
+import * as videoService from '../services/video.service.js';
 import fs from 'fs';
 import path from 'path';
+import {
+    SUCCESS_MESSAGES,
+    CREATED_MESSAGES,
+    VALIDATION_ERRORS,
+    NOT_FOUND_ERRORS,
+    SERVER_ERRORS,
+    sendSuccess,
+    sendCreated,
+    sendValidationError,
+    sendNotFound,
+    sendServerError
+} from '../utils/message.js';
 
 // Contrôleur pour uploader une vidéo
 export const uploadVideo = async (req, res) => {
     try {
         // Vérifier si un fichier a été uploadé
         if (!req.file) {
-            return res.status(400).json({
-                error: 'Aucun fichier vidéo fourni'
-            });
+            return sendValidationError(res, VALIDATION_ERRORS.NO_VIDEO_FILE);
         }
 
         // Récupérer les données du formulaire (title et theme)
@@ -22,12 +32,10 @@ export const uploadVideo = async (req, res) => {
                     if (err) console.error('Erreur lors de la suppression du fichier:', err);
                 });
             }
-            return res.status(400).json({
-                error: 'Les champs title et theme_id sont requis'
-            });
+            return sendValidationError(res, VALIDATION_ERRORS.MISSING_FIELDS);
         }
 
-        // Construire l'URL de la vidéo (chemin relatif ou absolu selon votre configuration)
+        // Construire l'URL de la vidéo
         const video_url = `/uploads/${req.file.filename}`;
         
         // Calculer la taille en Mo
@@ -36,60 +44,17 @@ export const uploadVideo = async (req, res) => {
         // Récupérer la durée ajoutée par le middleware validateVideoDuration
         const duration = req.file.duration || null;
 
-        // Vérifier le type de la colonne id pour adapter la requête
-        let query, params, id;
-        try {
-            const [schemaRows] = await pool.execute('DESCRIBE videos');
-            const idColumn = schemaRows.find(col => col.Field === 'id' || col.Field === 'ID');
-            
-            const typeStr = idColumn ? String(idColumn.Type).toLowerCase() : 'unknown';
-            const isInteger = idColumn && (typeStr.includes('int') || typeStr.includes('integer'));
-
-            if (idColumn && isInteger) {
-                // ID est un INTEGER, probablement AUTO_INCREMENT - ne pas l'inclure dans l'INSERT
-                query = `
-                    INSERT INTO videos (title, theme_id, video_url, duration, size_mb, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-                `;
-                params = [title, theme_id, video_url, duration, size_mb];
-            } else {
-                // ID est VARCHAR - générer un ID unique
-                id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-                query = `
-                    INSERT INTO videos (id, title, theme_id, video_url, duration, size_mb, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
-                `;
-                params = [id, title, theme_id, video_url, duration, size_mb];
-            }
-        } catch (schemaErr) {
-            // En cas d'erreur, supposer que id est INTEGER AUTO_INCREMENT (cas le plus courant)
-            query = `
-                INSERT INTO videos (title, theme_id, video_url, duration, size_mb, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, NOW(), NOW())
-            `;
-            params = [title, theme_id, video_url, duration, size_mb];
-        }
-
-        const [result] = await pool.execute(query, params);
-        
-        // Si id n'a pas été défini (cas AUTO_INCREMENT), utiliser l'ID généré par la base de données
-        if (!id && result.insertId) {
-            id = result.insertId;
-        }
+        // Appeler le service pour créer la vidéo
+        const video = await videoService.createVideo({
+            title,
+            theme_id,
+            video_url,
+            duration,
+            size_mb
+        });
 
         // Retourner les informations de la vidéo uploadée
-        res.status(201).json({
-            message: 'Vidéo uploadée avec succès',
-            video: {
-                id,
-                title,
-                theme_id,
-                video_url,
-                duration,
-                size_mb,
-                created_at: new Date()
-            }
-        });
+        sendCreated(res, CREATED_MESSAGES.VIDEO_UPLOADED, video);
 
     } catch (error) {
         console.error('Erreur lors de l\'upload de la vidéo:', error);
@@ -101,29 +66,18 @@ export const uploadVideo = async (req, res) => {
             });
         }
 
-        res.status(500).json({
-            error: 'Erreur lors de l\'upload de la vidéo',
-            message: error.message
-        });
+        sendServerError(res, SERVER_ERRORS.VIDEO_UPLOAD_ERROR, error.message);
     }
 };
 
 // Contrôleur pour récupérer toutes les vidéos
 export const getAllVideos = async (req, res) => {
     try {
-        const query = 'SELECT * FROM videos ORDER BY created_at DESC';
-        const [videos] = await pool.execute(query);
-
-        res.status(200).json({
-            message: 'Vidéos récupérées avec succès',
-            videos
-        });
+        const videos = await videoService.getAllVideos();
+        sendSuccess(res, SUCCESS_MESSAGES.VIDEOS_RETRIEVED, videos);
     } catch (error) {
         console.error('Erreur lors de la récupération des vidéos:', error);
-        res.status(500).json({
-            error: 'Erreur lors de la récupération des vidéos',
-            message: error.message
-        });
+        sendServerError(res, SERVER_ERRORS.VIDEOS_RETRIEVAL_ERROR, error.message);
     }
 };
 
@@ -132,25 +86,95 @@ export const getVideoById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const query = 'SELECT * FROM videos WHERE id = ?';
-        const [videos] = await pool.execute(query, [id]);
+        const video = await videoService.getVideoById(id);
 
-        if (videos.length === 0) {
-            return res.status(404).json({
-                error: 'Vidéo non trouvée'
+        if (!video) {
+            return sendNotFound(res, NOT_FOUND_ERRORS.VIDEO_NOT_FOUND);
+        }
+
+        sendSuccess(res, SUCCESS_MESSAGES.VIDEO_RETRIEVED, video);
+    } catch (error) {
+        console.error('Erreur lors de la récupération de la vidéo:', error);
+        sendServerError(res, SERVER_ERRORS.VIDEO_RETRIEVAL_ERROR, error.message);
+    }
+};
+
+// Contrôleur pour mettre à jour une vidéo
+export const updateVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, theme_id } = req.body;
+
+        // Vérifier que la vidéo existe
+        const existingVideo = await videoService.getVideoById(id);
+        if (!existingVideo) {
+            return sendNotFound(res, NOT_FOUND_ERRORS.VIDEO_NOT_FOUND);
+        }
+
+        // Préparer les données de mise à jour
+        const updateData = {};
+
+        // Ajouter title si fourni
+        if (title !== undefined) {
+            updateData.title = title;
+        }
+
+        // Ajouter theme_id si fourni
+        if (theme_id !== undefined) {
+            updateData.theme_id = theme_id;
+        }
+
+        // Si un nouveau fichier vidéo est fourni
+        if (req.file) {
+            // Construire l'URL de la nouvelle vidéo
+            const video_url = `/uploads/${req.file.filename}`;
+            
+            // Calculer la taille en Mo
+            const size_mb = (req.file.size / (1024 * 1024)).toFixed(2);
+            
+            // Récupérer la durée ajoutée par le middleware validateVideoDuration
+            const duration = req.file.duration || null;
+
+            updateData.video_url = video_url;
+            updateData.duration = duration;
+            updateData.size_mb = size_mb;
+
+            // Supprimer l'ancien fichier vidéo
+            const oldVideoPath = path.join(process.cwd(), existingVideo.video_url);
+            if (fs.existsSync(oldVideoPath)) {
+                fs.unlink(oldVideoPath, (err) => {
+                    if (err) {
+                        console.error('Erreur lors de la suppression de l\'ancienne vidéo:', err);
+                    }
+                });
+            }
+        }
+
+        // Vérifier qu'au moins un champ est fourni pour la mise à jour
+        if (Object.keys(updateData).length === 0) {
+            return sendValidationError(res, VALIDATION_ERRORS.MISSING_FIELDS);
+        }
+
+        // Mettre à jour la vidéo
+        const updatedVideo = await videoService.updateVideoById(id, updateData);
+
+        if (!updatedVideo) {
+            return sendServerError(res, SERVER_ERRORS.VIDEO_UPDATE_ERROR);
+        }
+
+        sendSuccess(res, SUCCESS_MESSAGES.VIDEO_UPDATED, updatedVideo);
+
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la vidéo:', error);
+        
+        // Supprimer le nouveau fichier en cas d'erreur si un fichier a été uploadé
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('Erreur lors de la suppression du fichier:', err);
             });
         }
 
-        res.status(200).json({
-            message: 'Vidéo récupérée avec succès',
-            video: videos[0]
-        });
-    } catch (error) {
-        console.error('Erreur lors de la récupération de la vidéo:', error);
-        res.status(500).json({
-            error: 'Erreur lors de la récupération de la vidéo',
-            message: error.message
-        });
+        sendServerError(res, SERVER_ERRORS.VIDEO_UPDATE_ERROR, error.message);
     }
 };
 
@@ -159,25 +183,18 @@ export const deleteVideo = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Récupérer les informations de la vidéo avant suppression
-        const selectQuery = 'SELECT video_url FROM videos WHERE id = ?';
-        const [videos] = await pool.execute(selectQuery, [id]);
+        // Récupérer l'URL de la vidéo avant suppression
+        const video_url = await videoService.getVideoUrlById(id);
 
-        if (videos.length === 0) {
-            return res.status(404).json({
-                error: 'Vidéo non trouvée'
-            });
+        if (!video_url) {
+            return sendNotFound(res, NOT_FOUND_ERRORS.VIDEO_NOT_FOUND);
         }
 
-        // Construire le chemin complet du fichier à partir de video_url
-        const video_url = videos[0].video_url;
-        const filePath = path.join(process.cwd(), video_url);
-
         // Supprimer la vidéo de la base de données
-        const deleteQuery = 'DELETE FROM videos WHERE id = ?';
-        await pool.execute(deleteQuery, [id]);
+        await videoService.deleteVideoById(id);
 
         // Supprimer le fichier du système de fichiers
+        const filePath = path.join(process.cwd(), video_url);
         if (fs.existsSync(filePath)) {
             fs.unlink(filePath, (err) => {
                 if (err) {
@@ -186,14 +203,9 @@ export const deleteVideo = async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            message: 'Vidéo supprimée avec succès'
-        });
+        sendSuccess(res, SUCCESS_MESSAGES.VIDEO_DELETED);
     } catch (error) {
         console.error('Erreur lors de la suppression de la vidéo:', error);
-        res.status(500).json({
-            error: 'Erreur lors de la suppression de la vidéo',
-            message: error.message
-        });
+        sendServerError(res, SERVER_ERRORS.VIDEO_DELETION_ERROR, error.message);
     }
 };

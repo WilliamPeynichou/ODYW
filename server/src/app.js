@@ -4,6 +4,12 @@ import morgan from 'morgan';
 import multer from 'multer';
 import testRoutes from './routes/test.route.js';
 import videoRoutes from './routes/video.route.js';
+import {
+    VALIDATION_ERRORS,
+    SERVER_ERRORS,
+    sendValidationError,
+    sendServerError
+} from './utils/message.js';
 
 const app = express();
 
@@ -27,20 +33,12 @@ app.use((err, req, res, next) => {
     // Gestion des erreurs Multer
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({
-                error: 'Le fichier est trop volumineux. Taille maximale: 45 Mo'
-            });
+            return sendValidationError(res, VALIDATION_ERRORS.FILE_TOO_LARGE);
         }
-        return res.status(400).json({
-            error: 'Erreur lors de l\'upload du fichier',
-            message: err.message
-        });
+        return sendValidationError(res, VALIDATION_ERRORS.UPLOAD_ERROR, err.message);
     }
     
-    res.status(err.status || 500).json({
-        message: 'Erreur interne du serveur',
-        error: err.message
-    });
+    sendServerError(res, SERVER_ERRORS.INTERNAL_SERVER_ERROR, err.message, err.status || 500);
 })
 
 

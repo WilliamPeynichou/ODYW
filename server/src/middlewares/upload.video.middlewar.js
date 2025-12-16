@@ -1,13 +1,11 @@
 import multer from 'multer';
 import path from 'path';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
-import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import fs from 'fs';
-
-// Configurer le chemin vers ffmpeg (using installers)
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
-ffmpeg.setFfprobePath(ffprobeInstaller.path);
+import {
+    VALIDATION_ERRORS,
+    sendValidationError
+} from '../utils/message.js';
+import { validateVideoDuration as validateVideoDurationUtil } from '../utils/video.verif.js';
 
 // logique de stockage des fichiers
 const storage = multer.diskStorage({
@@ -48,55 +46,46 @@ const upload = multer({
 });
 
 // Middleware pour vérifier la durée de la vidéo (10s à 60s)
-const validateVideoDuration = (req, res, next) => {
+const validateVideoDuration = async (req, res, next) => {
     if (!req.file) {
         return next();
     }
 
     const videoPath = req.file.path;
 
-    ffmpeg.ffprobe(videoPath, (err, metadata) => {
-        if (err) {
-            console.error('Erreur ffprobe:', err.message);
-            console.error('Stack:', err.stack);
-            
-            // Supprimer le fichier en cas d'erreur
-            if (fs.existsSync(videoPath)) {
-                fs.unlink(videoPath, () => {});
-            }
-            return res.status(400).json({ 
-                error: 'Impossible d\'analyser la vidéo. Veuillez vérifier que le fichier est valide.',
-                details: process.env.NODE_ENV === 'development' ? err.message : undefined
-            });
-        }
-
-        // Vérifier que les métadonnées et la durée existent
-        if (!metadata || !metadata.format || typeof metadata.format.duration !== 'number') {
-            // Supprimer le fichier si les métadonnées sont incomplètes
-            if (fs.existsSync(videoPath)) {
-                fs.unlink(videoPath, () => {}); // Suppression asynchrone, ignorer les erreurs
-            }
-            return res.status(400).json({ 
-                error: 'Impossible d\'obtenir la durée de la vidéo. Le fichier peut être corrompu ou invalide.' 
-            });
-        }
-
-        const duration = metadata.format.duration; // durée en secondes
-
-        if (duration < 10 || duration > 60) {
-            // Supprimer le fichier si la durée n'est pas valide
-            if (fs.existsSync(videoPath)) {
-                fs.unlink(videoPath, () => {}); // Suppression asynchrone, ignorer les erreurs
-            }
-            return res.status(400).json({ 
-                error: `La durée de la vidéo doit être entre 10 secondes et 60 secondes. Durée actuelle: ${duration.toFixed(2)}s` 
-            });
-        }
-
+    try {
+        // Utiliser la fonction de vérification du module video.verif.js
+        const duration = await validateVideoDurationUtil(videoPath, 10, 60);
+        
         // Ajouter la durée à la requête pour utilisation ultérieure si nécessaire
         req.file.duration = duration;
         next();
-    });
+    } catch (error) {
+        // Supprimer le fichier en cas d'erreur
+        if (fs.existsSync(videoPath)) {
+            fs.unlink(videoPath, () => {});
+        }
+
+        // Gérer les différents types d'erreurs
+        if (error.message.includes('durée')) {
+            // Extraire la durée de l'erreur si possible
+            const durationMatch = error.message.match(/Durée actuelle: ([\d.]+)s/);
+            const duration = durationMatch ? parseFloat(durationMatch[1]) : null;
+            
+            if (duration !== null) {
+                return sendValidationError(res, VALIDATION_ERRORS.INVALID_VIDEO_DURATION(duration));
+            }
+            return sendValidationError(res, VALIDATION_ERRORS.INVALID_VIDEO_DURATION(0));
+        } else if (error.message.includes('métadonnées') || error.message.includes('Métadonnées')) {
+            return sendValidationError(res, VALIDATION_ERRORS.INVALID_VIDEO_METADATA);
+        } else {
+            return sendValidationError(
+                res,
+                VALIDATION_ERRORS.INVALID_VIDEO_ANALYSIS,
+                process.env.NODE_ENV === 'development' ? error.message : undefined
+            );
+        }
+    }
 };
 
 // export du middleware
