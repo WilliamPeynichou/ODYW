@@ -21,16 +21,28 @@ export const uploadVideo = multer({
     storage: storage,
     // la taille maximale de la video
     limits: {
-        fileSize: 500 * 1024 * 1024
+        fileSize: 45 * 1024 * 1024
     },
     // filtrer les types de fichiers autorisés
     fileFilter: (req, file, cb) => {
         // types de fichier autorises dans une variable allowedtypes
-        const allowedTypes = /mp4|avi|mov|wmv|flv|mkv/;
+        const allowedTypes = /\.(mp4|avi|mov|wmv|flv|mkv)$/i;
+
+        // mime type est le type de fichier autorisé dans un tableau
+        const allowedMimeTypes = [
+            'video/mp4',  //MP4
+            'video/x-msvideo', //AVI
+            'video/avi', //AVI 
+            'video/quicktime', //MOV
+            'video/x-ms-wmv', //WMV
+            'video/x-flv', //FLV
+            'video/x-matroska', //MKV
+        ];
+
         // test si l'extension du fichier est autorisée
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
         // test si le type de fichier est autorisé
-        const mimetype = allowedTypes.test(file.mimetype);
+        const mimetype = allowedMimeTypes.includes(file.mimetype);
 
         // si l'extension et le type de fichier sont autorisés, on retourne true
         if(extname && mimetype) {

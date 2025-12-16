@@ -19,7 +19,7 @@ app.use(morgan('dev'));
 app.use('/api/test', testRoutes);
 app.use('/api/videos', videosRoutes);
 
-app.use((err, res) => {
+app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).json({
         message: 'Erreur interne du serveur',
