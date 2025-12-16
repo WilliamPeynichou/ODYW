@@ -2,7 +2,7 @@
 
 import express from 'express';
 import { getComments, addComment, editComment, removeComment } from '../controllers/commentController.js';
-import { validateComment } from '../middlewares/validate.js';
+import { validateComment } from '../middlewares/validator/comment.validate.js';
 
 const router = express.Router();
 

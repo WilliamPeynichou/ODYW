@@ -9,28 +9,10 @@ export const createVideoController = async (req, res) => {
 
     // try and catch 
     try {
-        // si pas de fichier dans la requete, error
-        if(!req.file) {
-            return res.status(400).json({ 
-                message: 'Aucune vidéo trouvée',
-            });
-        }
-
         // variable realDuration pour avoir la durée réelle de la vidéo
-        let realDuration;
-        // try and catch pour avoir la durée réelle de la vidéo
-        try {
-            // readuration = attend la promise de la fonction getvideoduration
-            // et en param on met le chemin du fichier dla requete
-            realDuration = await getVideoDuration(req.file.path);
-        } catch (error) {
-            // si erreur, supprimer le fichier et renvoyer une erreur 
-            fs.unlinkSync(req.file.path);
-            return res.status(400).json({
-                message: 'Erreur lors de la lecture de la vidéo',
-                error: error.message
-            });
-        }
+        // readuration = attend la promise de la fonction getvideoduration
+        // et en param on met le chemin du fichier dla requete
+        const realDuration = await getVideoDuration(req.file.path);
 
         // valider que la durée est entre 10 et 60 secondes
         // si la durée est inférieure à 10, supprile le fichier et renvoyer une erreur
