@@ -13,9 +13,9 @@ export const uploadVideo = async (req, res) => {
         }
 
         // Récupérer les données du formulaire (title et theme)
-        const { title, theme } = req.body;
+        const { title, theme_id } = req.body;
         
-        if (!title || !theme) {
+        if (!title || !theme_id) {
             // Supprimer le fichier si les données requises sont manquantes
             if (fs.existsSync(req.file.path)) {
                 fs.unlink(req.file.path, (err) => {
@@ -23,13 +23,10 @@ export const uploadVideo = async (req, res) => {
                 });
             }
             return res.status(400).json({
-                error: 'Les champs title et theme sont requis'
+                error: 'Les champs title et theme_id sont requis'
             });
         }
 
-        // Générer un ID unique pour la vidéo
-        const id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        
         // Construire l'URL de la vidéo (chemin relatif ou absolu selon votre configuration)
         const video_url = `/uploads/${req.file.filename}`;
         
@@ -39,20 +36,46 @@ export const uploadVideo = async (req, res) => {
         // Récupérer la durée ajoutée par le middleware validateVideoDuration
         const duration = req.file.duration || null;
 
-        // Insérer les métadonnées de la vidéo dans la base de données
-        const query = `
-            INSERT INTO videos (id, title, theme, video_url, duration, size_mb, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
-        `;
+        // Vérifier le type de la colonne id pour adapter la requête
+        let query, params, id;
+        try {
+            const [schemaRows] = await pool.execute('DESCRIBE videos');
+            const idColumn = schemaRows.find(col => col.Field === 'id' || col.Field === 'ID');
+            
+            const typeStr = idColumn ? String(idColumn.Type).toLowerCase() : 'unknown';
+            const isInteger = idColumn && (typeStr.includes('int') || typeStr.includes('integer'));
 
-        const [result] = await pool.execute(query, [
-            id,
-            title,
-            theme,
-            video_url,
-            duration,
-            size_mb
-        ]);
+            if (idColumn && isInteger) {
+                // ID est un INTEGER, probablement AUTO_INCREMENT - ne pas l'inclure dans l'INSERT
+                query = `
+                    INSERT INTO videos (title, theme_id, video_url, duration, size_mb, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+                `;
+                params = [title, theme_id, video_url, duration, size_mb];
+            } else {
+                // ID est VARCHAR - générer un ID unique
+                id = `video-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                query = `
+                    INSERT INTO videos (id, title, theme_id, video_url, duration, size_mb, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+                `;
+                params = [id, title, theme_id, video_url, duration, size_mb];
+            }
+        } catch (schemaErr) {
+            // En cas d'erreur, supposer que id est INTEGER AUTO_INCREMENT (cas le plus courant)
+            query = `
+                INSERT INTO videos (title, theme_id, video_url, duration, size_mb, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+            `;
+            params = [title, theme_id, video_url, duration, size_mb];
+        }
+
+        const [result] = await pool.execute(query, params);
+        
+        // Si id n'a pas été défini (cas AUTO_INCREMENT), utiliser l'ID généré par la base de données
+        if (!id && result.insertId) {
+            id = result.insertId;
+        }
 
         // Retourner les informations de la vidéo uploadée
         res.status(201).json({
@@ -60,7 +83,7 @@ export const uploadVideo = async (req, res) => {
             video: {
                 id,
                 title,
-                theme,
+                theme_id,
                 video_url,
                 duration,
                 size_mb,

@@ -1,7 +1,13 @@
 import multer from 'multer';
 import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import fs from 'fs';
+
+// Configurer le chemin vers ffmpeg (using installers)
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 // logique de stockage des fichiers
 const storage = multer.diskStorage({
@@ -51,12 +57,16 @@ const validateVideoDuration = (req, res, next) => {
 
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
         if (err) {
+            console.error('Erreur ffprobe:', err.message);
+            console.error('Stack:', err.stack);
+            
             // Supprimer le fichier en cas d'erreur
             if (fs.existsSync(videoPath)) {
-                fs.unlink(videoPath, () => {}); // Suppression asynchrone, ignorer les erreurs
+                fs.unlink(videoPath, () => {});
             }
             return res.status(400).json({ 
-                error: 'Impossible d\'analyser la vidéo. Veuillez vérifier que le fichier est valide.' 
+                error: 'Impossible d\'analyser la vidéo. Veuillez vérifier que le fichier est valide.',
+                details: process.env.NODE_ENV === 'development' ? err.message : undefined
             });
         }
 
