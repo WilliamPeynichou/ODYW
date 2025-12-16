@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
+import Footer from '../../layout/footer';
 import VideoForm from './VideoForm';
 import { uploadVideo } from '../../service/videoService';
 
@@ -76,6 +77,7 @@ const AddVideo = () => {
         {/* Formulaire */}
         <VideoForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
       </div>
+      <Footer />
     </div>
   );
 };

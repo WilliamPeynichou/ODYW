@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllVideos } from '../../service/videoService';
+import VideoFilter from './VideoFilter';
 
 // Composant pour une carte vidéo individuelle
 const VideoCard = ({ video }) => {
@@ -74,6 +75,8 @@ const ProductList = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedTheme, setSelectedTheme] = useState(null);
+  const [selectedDateFilter, setSelectedDateFilter] = useState('all');
 
   // Fonction pour charger les vidéos depuis l'API
   const loadVideos = async () => {
@@ -95,6 +98,13 @@ const ProductList = () => {
         duration: video.duration,
         size_mb: video.size_mb,
       }));
+
+      // Trier par date décroissante par défaut (plus récentes en premier)
+      mappedVideos.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
+        return dateB - dateA;
+      });
       
       setVideos(mappedVideos);
     } catch (err) {
@@ -108,6 +118,71 @@ const ProductList = () => {
   useEffect(() => {
     loadVideos();
   }, []);
+
+  // Fonction de filtrage des vidéos
+  const filteredVideos = useMemo(() => {
+    let filtered = [...videos];
+
+    // Filtre par thème
+    if (selectedTheme) {
+      filtered = filtered.filter(video => video.theme_name === selectedTheme);
+    }
+
+    // Filtre par date
+    if (selectedDateFilter && selectedDateFilter !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const monthAgo = new Date(today);
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+      filtered = filtered.filter(video => {
+        if (!video.createdAt) return false;
+        const videoDate = new Date(video.createdAt);
+
+        switch (selectedDateFilter) {
+          case 'recent':
+            // Plus récentes en premier (déjà trié par date DESC dans l'API)
+            return true;
+          case 'oldest':
+            // Plus anciennes en premier (on va inverser le tri)
+            return true;
+          case 'today':
+            return videoDate >= today;
+          case 'week':
+            return videoDate >= weekAgo;
+          case 'month':
+            return videoDate >= monthAgo;
+          default:
+            return true;
+        }
+      });
+
+      // Trier selon le filtre de date
+      if (selectedDateFilter === 'oldest') {
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateA - dateB; // Plus anciennes en premier
+        });
+      } else if (selectedDateFilter === 'recent') {
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA; // Plus récentes en premier
+        });
+      }
+    }
+
+    return filtered;
+  }, [videos, selectedTheme, selectedDateFilter]);
+
+  // Gérer les changements de filtres
+  const handleFilterChange = ({ theme, date }) => {
+    setSelectedTheme(theme);
+    setSelectedDateFilter(date);
+  };
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8" id="videos">
@@ -143,14 +218,47 @@ const ProductList = () => {
       {!loading && !error && (
         <>
           {videos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {videos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={video}
-                />
-              ))}
-            </div>
+            <>
+              {/* Composant de filtre */}
+              <VideoFilter
+                videos={videos}
+                onFilterChange={handleFilterChange}
+                selectedTheme={selectedTheme}
+                selectedDateFilter={selectedDateFilter}
+              />
+
+              {/* Compteur de résultats */}
+              <div className="mb-4 text-sm text-gray-600">
+                {filteredVideos.length === videos.length ? (
+                  <span>{videos.length} vidéo{videos.length > 1 ? 's' : ''} disponible{videos.length > 1 ? 's' : ''}</span>
+                ) : (
+                  <span>
+                    {filteredVideos.length} vidéo{filteredVideos.length > 1 ? 's' : ''} sur {videos.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Grille des vidéos filtrées */}
+              {filteredVideos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredVideos.map((video) => (
+                    <VideoCard
+                      key={video.id}
+                      video={video}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <p className="text-gray-500 text-lg mb-2">
+                    Aucune vidéo ne correspond aux filtres sélectionnés
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Essayez de modifier vos critères de recherche
+                  </p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg mb-4">
