@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
 import Footer from '../../layout/footer';
 import { CommentList } from './Comment';
-import { getVideoById } from '../../service/videoService';
+import { getVideoById, deleteVideo } from '../../service/videoService';
 import { getCommentsByVideoId, createComment, updateComment, deleteComment } from '../../service/commentService';
 
 const VideoDetails = () => {
@@ -129,6 +129,26 @@ const VideoDetails = () => {
     } catch (err) {
       console.error('Erreur lors de la suppression du commentaire:', err);
       throw err; // Re-lancer l'erreur pour que le composant Comment puisse la gérer
+    }
+  };
+
+  const handleDeleteVideo = async () => {
+    // Demander confirmation avant de supprimer
+    const confirmed = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer la vidéo "${video.title}" ? Cette action est irréversible.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteVideo(id);
+      // Rediriger vers la page d'accueil après suppression réussie
+      navigate('/');
+    } catch (err) {
+      console.error('Erreur lors de la suppression de la vidéo:', err);
+      alert('Erreur lors de la suppression de la vidéo. Veuillez réessayer.');
     }
   };
 
@@ -260,6 +280,28 @@ const VideoDetails = () => {
                     />
                   </svg>
                   <span>Modifier</span>
+                </button>
+
+                {/* Bouton Supprimer */}
+                <button
+                  onClick={handleDeleteVideo}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  <span>Supprimer</span>
                 </button>
               </div>
 
