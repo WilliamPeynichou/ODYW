@@ -64,9 +64,24 @@ export const createVideoController = async (req, res) => {
 
         // video attend la promise de la fonction createVideo avec videoData en param
         const video = await createVideo(videoData);
+
+        // si la video n'est pas crée, renvoyer une erreur
+        if (!video) {
+            return res.status(400).json({
+                message: 'Erreur lors de la création de la vidéo',
+            });
+        }
+
         // videoCreated attend la prmise de la fonction getVideoById avec video en param
         // j'utilise ca pour récup la video crée avec son id et je la renvoie dans la reponse
         const videoCreated = await getVideoById(video);
+
+        // si la video n'est pas trouvée, renvoyer une erreur
+        if (!videoCreated) {
+            return res.status(400).json({
+                message: 'Erreur lors de la récupération de la vidéo',
+            });
+        }
 
         res.status(201).json({
             message: 'video crée avec succès',
@@ -111,6 +126,13 @@ export const getVideoByIdController = async (req, res) => {
         const { id } = req.params;
         // video attend la promise de la fonction getVideoById avec id en param
         const video = await getVideoById(id);
+
+        // si la video n'est pas trouvée, renvoyer une erreur
+        if (!video) {
+            return res.status(404).json({
+                message: 'Video non trouvée',
+            });
+        }
 
         res.status(200).json({
             message: `video n° ${id} trouvée avec succès`,
