@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import testRoutes from './routes/test.route.js';
 
-import commentRoutes from './routes/comments.js';
+import commentRoutes from './routes/comments.route.js'
 import videosRoutes from './routes/videos.route.js';
 import themesRoutes from './routes/themes.route.js';
 
