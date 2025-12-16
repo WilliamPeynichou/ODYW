@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
+import Footer from '../../layout/footer';
 import { CommentList } from './Comment';
 import { getVideoById } from '../../service/videoService';
 import { getCommentsByVideoId, createComment } from '../../service/commentService';
@@ -302,6 +303,7 @@ const VideoDetails = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

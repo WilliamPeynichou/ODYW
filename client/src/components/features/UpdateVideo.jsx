@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../layout/header';
+import Footer from '../../layout/footer';
 import VideoForm from './VideoForm';
 import { getVideoById, updateVideo } from '../../service/videoService';
 
@@ -138,6 +139,7 @@ const UpdateVideo = () => {
           isUpdate={true}
         />
       </div>
+      <Footer />
     </div>
   );
 };
