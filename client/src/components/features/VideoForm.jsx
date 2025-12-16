@@ -1,11 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VideoFileInput from './VideoFileInput';
+import { getAllThemes } from '../../service/themeService';
 
-const VideoForm = ({ onSubmit, isSubmitting }) => {
+const VideoForm = ({ onSubmit, isSubmitting, initialData = null, isUpdate = false }) => {
   const [title, setTitle] = useState('');
   const [theme, setTheme] = useState('');
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const [themes, setThemes] = useState([]);
+  const [loadingThemes, setLoadingThemes] = useState(true);
+
+  // Charger les thèmes depuis l'API
+  useEffect(() => {
+    const loadThemes = async () => {
+      try {
+        setLoadingThemes(true);
+        const themesData = await getAllThemes();
+        setThemes(themesData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des thèmes:', error);
+        setErrors(prev => ({ ...prev, themes: 'Erreur lors du chargement des thèmes' }));
+      } finally {
+        setLoadingThemes(false);
+      }
+    };
+
+    loadThemes();
+  }, []);
+
+  // Charger les données initiales si fournies (pour la mise à jour)
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      // Utiliser theme_id si disponible, sinon chercher par nom
+      if (initialData.theme_id) {
+        setTheme(initialData.theme_id.toString());
+      } else if (initialData.theme_name && themes.length > 0) {
+        const foundTheme = themes.find(t => t.name === initialData.theme_name);
+        if (foundTheme) {
+          setTheme(foundTheme.id.toString());
+        }
+      }
+    }
+  }, [initialData, themes]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -18,7 +55,8 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
       newErrors.theme = 'Le thème est requis';
     }
 
-    if (!file) {
+    // Le fichier n'est requis que pour la création, pas pour la mise à jour
+    if (!isUpdate && !file) {
       newErrors.file = 'Veuillez sélectionner un fichier vidéo';
     }
 
@@ -77,23 +115,38 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
         <label htmlFor="theme" className="block text-sm font-medium text-gray-700 mb-2">
           Thème <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
-          id="theme"
-          value={theme}
-          onChange={(e) => {
-            setTheme(e.target.value);
-            if (errors.theme) {
-              setErrors({ ...errors, theme: '' });
-            }
-          }}
-          placeholder="Ex: Aventure, Nature, Voyage..."
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.theme ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
+        {loadingThemes ? (
+          <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+            <span className="text-gray-500 text-sm">Chargement des thèmes...</span>
+          </div>
+        ) : (
+          <select
+            id="theme"
+            value={theme}
+            onChange={(e) => {
+              setTheme(e.target.value);
+              if (errors.theme) {
+                setErrors({ ...errors, theme: '' });
+              }
+            }}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white ${
+              errors.theme ? 'border-red-500' : 'border-gray-300'
+            }`}
+          >
+            <option value="">Sélectionnez un thème</option>
+            {themes.map((themeOption) => (
+              <option key={themeOption.id} value={themeOption.id}>
+                {themeOption.name}
+              </option>
+            ))}
+          </select>
+        )}
         {errors.theme && (
           <p className="mt-1 text-sm text-red-600">{errors.theme}</p>
+        )}
+        {errors.themes && (
+          <p className="mt-1 text-sm text-red-600">{errors.themes}</p>
         )}
       </div>
 
@@ -107,6 +160,8 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
           }
         }}
         error={errors.file}
+        required={!isUpdate}
+        label={isUpdate ? 'Nouvelle vidéo (optionnel)' : 'Vidéo'}
       />
 
       {/* Informations automatiques */}
@@ -196,7 +251,7 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Ajouter la vidéo
+              {isUpdate ? 'Modifier la vidéo' : 'Ajouter la vidéo'}
             </>
           )}
         </button>

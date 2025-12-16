@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
+import Footer from '../../layout/footer';
 import VideoForm from './VideoForm';
+import { uploadVideo } from '../../service/videoService';
 
 const AddVideo = () => {
   const navigate = useNavigate();
@@ -10,35 +12,29 @@ const AddVideo = () => {
   const handleSubmit = async (videoData) => {
     setIsSubmitting(true);
     try {
-      // TODO: Remplacer par votre endpoint API
-      // const formData = new FormData();
-      // formData.append('title', videoData.title);
-      // formData.append('theme', videoData.theme);
-      // formData.append('file', videoData.file);
-      // formData.append('createdAt', videoData.createdAt);
-      // formData.append('size', videoData.size);
-      // 
-      // const response = await fetch('/api/videos', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Erreur lors de l\'ajout de la vidéo');
-      // }
-      // 
-      // const result = await response.json();
-      // navigate(`/video/${result.id}`);
-
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Créer FormData pour l'upload
+      const formData = new FormData();
+      formData.append('video', videoData.file);
+      formData.append('title', videoData.title);
       
-      console.log('Données de la vidéo:', videoData);
-      alert('Vidéo ajoutée avec succès ! (Simulation)');
+      // Convertir theme en theme_id (si c'est un nombre, sinon null)
+      // Note: Vous devrez peut-être adapter cette logique selon votre structure de données
+      const themeId = videoData.theme && !isNaN(parseInt(videoData.theme)) 
+        ? parseInt(videoData.theme) 
+        : null;
+      
+      if (themeId !== null) {
+        formData.append('theme_id', themeId.toString());
+      }
+
+      // Upload de la vidéo via l'API
+      const uploadedVideo = await uploadVideo(formData);
+      
+      // Rediriger vers la page d'accueil après succès
       navigate('/');
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la vidéo:', error);
-      alert('Erreur lors de l\'ajout de la vidéo. Veuillez réessayer.');
+      alert(`Erreur lors de l'ajout de la vidéo: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,6 +77,7 @@ const AddVideo = () => {
         {/* Formulaire */}
         <VideoForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
       </div>
+      <Footer />
     </div>
   );
 };
