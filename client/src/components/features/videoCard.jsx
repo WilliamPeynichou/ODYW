@@ -1,27 +1,57 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllVideos } from '../../service/videoService';
 import VideoFilter from './VideoFilter';
+import negativeVideo from '../../assets/Negative-mask-effect.mp4';
 
 // Composant pour une carte vidéo individuelle
 const VideoCard = ({ video }) => {
   const navigate = useNavigate();
+  const negativeVideoRef = useRef(null);
 
   const handleVideoClick = () => {
     navigate(`/video/${video.id}`);
   };
 
+  const handleMouseEnter = () => {
+    if (negativeVideoRef.current) {
+      negativeVideoRef.current.play();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (negativeVideoRef.current) {
+      negativeVideoRef.current.pause();
+      negativeVideoRef.current.currentTime = 0;
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+    <div 
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Vidéo cliquable */}
       <div 
         className="relative w-full bg-black" 
         style={{ aspectRatio: '16/9' }}
         onClick={handleVideoClick}
       >
+        {/* Vidéo negative en arrière-plan fixe */}
+        <video
+          ref={negativeVideoRef}
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          src={negativeVideo}
+          muted
+          loop
+          playsInline
+        />
+
+        {/* Vidéo principale */}
         {video.url || video.src ? (
           <video
-            className="w-full h-full object-cover"
+            className="relative w-full h-full object-cover z-10"
             src={video.url || video.src}
             poster={video.thumbnail || video.poster}
             muted
@@ -32,13 +62,13 @@ const VideoCard = ({ video }) => {
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+          <div className="relative w-full h-full flex items-center justify-center bg-gray-200 z-10">
             <p className="text-gray-400">Aucune vidéo</p>
           </div>
         )}
         
         {/* Overlay au survol */}
-        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all flex items-center justify-center z-20">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-16 w-16 text-white opacity-0 hover:opacity-100 transition-opacity"
@@ -184,11 +214,36 @@ const ProductList = () => {
     setSelectedDateFilter(date);
   };
 
+  const negativeVideoHeaderRef = useRef(null);
+
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8" id="videos">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Nos Vidéos</h2>
-        <p className="text-gray-600">
+      <div className="mb-8 relative">
+        {/* Vidéo negative à la place du titre */}
+        <div 
+          className="relative w-full h-32 md:h-48 lg:h-64 overflow-hidden rounded-lg"
+          onMouseEnter={() => {
+            if (negativeVideoHeaderRef.current) {
+              negativeVideoHeaderRef.current.play();
+            }
+          }}
+          onMouseLeave={() => {
+            if (negativeVideoHeaderRef.current) {
+              negativeVideoHeaderRef.current.pause();
+              negativeVideoHeaderRef.current.currentTime = 0;
+            }
+          }}
+        >
+          <video
+            ref={negativeVideoHeaderRef}
+            className="w-full h-full object-cover"
+            src={negativeVideo}
+            muted
+            loop
+            playsInline
+          />
+        </div>
+        <p className="text-gray-600 mt-4">
           Découvrez notre sélection de vidéos
         </p>
       </div>
