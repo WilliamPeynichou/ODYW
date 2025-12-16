@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Comment from './Comment';
+import Header from '../../layout/header';
+import { CommentList } from './Comment';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -156,6 +157,7 @@ const VideoDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <button
@@ -282,18 +284,14 @@ const VideoDetails = () => {
                 </div>
               </form>
 
-              {/* Liste des commentaires */}
-              <div className="space-y-0">
-                {comments.length > 0 ? (
-                  comments.map((comment) => (
-                    <Comment key={comment.id} comment={comment} />
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-8">
-                    Aucun commentaire pour le moment. Soyez le premier à commenter !
-                  </p>
-                )}
-              </div>
+              {/* Liste des commentaires avec style notifications Apple */}
+              {comments.length > 0 ? (
+                <CommentList comments={comments} maxVisible={3} autoDarkMode={true} />
+              ) : (
+                <p className="text-gray-500 text-center py-8">
+                  Aucun commentaire pour le moment. Soyez le premier à commenter !
+                </p>
+              )}
             </div>
           </div>
 
