@@ -86,6 +86,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 4px;
+  position: relative;
 }
 
 .notification header .avatar {
@@ -224,6 +225,184 @@
   animation-delay: 0.3s;
 }
 
+/* Boutons d'action pour les commentaires */
+.comment-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.comment-item:hover .comment-actions {
+  opacity: 1;
+}
+
+.comment-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  font-size: 0;
+  line-height: 0;
+}
+
+.comment-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.notification.dark-mode .comment-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.comment-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.comment-action-btn[title="Modifier"] {
+  color: #5f6368;
+}
+
+.comment-action-btn[title="Modifier"]:hover {
+  color: #1a73e8;
+  background-color: rgba(26, 115, 232, 0.1);
+}
+
+.comment-action-btn[title="Supprimer"] {
+  color: #5f6368;
+}
+
+.comment-action-btn[title="Supprimer"]:hover {
+  color: #ea4335;
+  background-color: rgba(234, 67, 53, 0.1);
+}
+
+.notification.dark-mode .comment-action-btn[title="Modifier"] {
+  color: #9aa0a6;
+}
+
+.notification.dark-mode .comment-action-btn[title="Modifier"]:hover {
+  color: #8ab4f8;
+  background-color: rgba(138, 180, 248, 0.1);
+}
+
+.notification.dark-mode .comment-action-btn[title="Supprimer"] {
+  color: #9aa0a6;
+}
+
+.notification.dark-mode .comment-action-btn[title="Supprimer"]:hover {
+  color: #f28b82;
+  background-color: rgba(242, 139, 130, 0.1);
+}
+
+/* Zone d'édition */
+.comment-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification .content textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: #ffffff;
+  color: #202124;
+}
+
+.notification .content textarea:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+}
+
+.notification.dark-mode .content textarea {
+  background-color: #303134;
+  border-color: #5f6368;
+  color: #e8eaed;
+}
+
+.notification.dark-mode .content textarea:focus {
+  border-color: #8ab4f8;
+  box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.1);
+}
+
+.comment-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.comment-edit-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+}
+
+.comment-edit-btn-cancel {
+  background-color: #f1f3f4;
+  color: #5f6368;
+}
+
+.comment-edit-btn-cancel:hover {
+  background-color: #e8eaed;
+}
+
+.comment-edit-btn-save {
+  background-color: #1a73e8;
+  color: #ffffff;
+}
+
+.comment-edit-btn-save:hover:not(:disabled) {
+  background-color: #1765cc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.comment-edit-btn-save:disabled {
+  background-color: #dadce0;
+  color: #9aa0a6;
+  cursor: not-allowed;
+}
+
+.notification.dark-mode .comment-edit-btn-cancel {
+  background-color: #3c4043;
+  color: #bdc1c6;
+}
+
+.notification.dark-mode .comment-edit-btn-cancel:hover {
+  background-color: #5f6368;
+}
+
+.notification.dark-mode .comment-edit-btn-save {
+  background-color: #8ab4f8;
+  color: #202124;
+}
+
+.notification.dark-mode .comment-edit-btn-save:hover:not(:disabled) {
+  background-color: #aecbfa;
+}
+
+.notification.dark-mode .comment-edit-btn-save:disabled {
+  background-color: #3c4043;
+  color: #5f6368;
+}
+
 /* Responsive */
 @media screen and (max-width: 640px) {
   .comment-notification-wrapper {
@@ -243,6 +422,10 @@
 
   .notification .content {
     padding-left: 48px;
+  }
+
+  .comment-actions {
+    opacity: 1; /* Toujours visible sur mobile */
   }
 }
 

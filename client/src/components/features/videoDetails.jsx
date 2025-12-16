@@ -4,7 +4,7 @@ import Header from '../../layout/header';
 import Footer from '../../layout/footer';
 import { CommentList } from './Comment';
 import { getVideoById } from '../../service/videoService';
-import { getCommentsByVideoId, createComment } from '../../service/commentService';
+import { getCommentsByVideoId, createComment, updateComment, deleteComment } from '../../service/commentService';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -96,24 +96,39 @@ const VideoDetails = () => {
 
     try {
       // Créer le commentaire via l'API
-      const createdComment = await createComment(id, newComment.trim());
+      await createComment(id, newComment.trim());
       
-      // Mapper le commentaire créé vers le format attendu par le composant
-      const mappedComment = {
-        id: createdComment.id,
-        author: createdComment.author || 'Utilisateur anonyme',
-        content: createdComment.content,
-        likes: createdComment.likes || 0,
-        createdAt: createdComment.created_at || createdComment.createdAt || new Date().toISOString(),
-      };
-
-      // Ajouter le nouveau commentaire en haut de la liste
-      setComments([mappedComment, ...comments]);
+      // Réinitialiser le champ de saisie
       setNewComment('');
+      
+      // Recharger la liste des commentaires pour afficher le nouveau commentaire
+      await loadComments();
     } catch (err) {
       console.error('Erreur lors de l\'ajout du commentaire:', err);
-      // Afficher un message d'erreur à l'utilisateur (optionnel)
+      // Afficher un message d'erreur à l'utilisateur
       alert('Erreur lors de l\'ajout du commentaire. Veuillez réessayer.');
+    }
+  };
+
+  const handleUpdateComment = async (commentId, content) => {
+    try {
+      await updateComment(commentId, content);
+      // Recharger la liste des commentaires pour afficher les modifications
+      await loadComments();
+    } catch (err) {
+      console.error('Erreur lors de la modification du commentaire:', err);
+      throw err; // Re-lancer l'erreur pour que le composant Comment puisse la gérer
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      // Recharger la liste des commentaires pour retirer le commentaire supprimé
+      await loadComments();
+    } catch (err) {
+      console.error('Erreur lors de la suppression du commentaire:', err);
+      throw err; // Re-lancer l'erreur pour que le composant Comment puisse la gérer
     }
   };
 
@@ -293,7 +308,11 @@ const VideoDetails = () => {
 
               {/* Liste des commentaires avec style notifications Google */}
               {comments.length > 0 ? (
-                <CommentList comments={comments} />
+                <CommentList 
+                  comments={comments} 
+                  onUpdateComment={handleUpdateComment}
+                  onDeleteComment={handleDeleteComment}
+                />
               ) : (
                 <p className="text-gray-500 text-center py-8">
                   Aucun commentaire pour le moment. Soyez le premier à commenter !
