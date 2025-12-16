@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import VideoFileInput from './VideoFileInput';
 
-const VideoForm = ({ onSubmit, isSubmitting }) => {
+const VideoForm = ({ onSubmit, isSubmitting, initialData = null, isUpdate = false }) => {
   const [title, setTitle] = useState('');
   const [theme, setTheme] = useState('');
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Charger les données initiales si fournies (pour la mise à jour)
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setTheme(initialData.theme_id ? initialData.theme_id.toString() : initialData.theme_name || '');
+    }
+  }, [initialData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -18,7 +26,8 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
       newErrors.theme = 'Le thème est requis';
     }
 
-    if (!file) {
+    // Le fichier n'est requis que pour la création, pas pour la mise à jour
+    if (!isUpdate && !file) {
       newErrors.file = 'Veuillez sélectionner un fichier vidéo';
     }
 
@@ -107,6 +116,8 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
           }
         }}
         error={errors.file}
+        required={!isUpdate}
+        label={isUpdate ? 'Nouvelle vidéo (optionnel)' : 'Vidéo'}
       />
 
       {/* Informations automatiques */}
@@ -196,7 +207,7 @@ const VideoForm = ({ onSubmit, isSubmitting }) => {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Ajouter la vidéo
+              {isUpdate ? 'Modifier la vidéo' : 'Ajouter la vidéo'}
             </>
           )}
         </button>

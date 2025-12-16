@@ -1,43 +1,29 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './comment.css';
 
 const Comment = ({ comment, index = 0, isDarkMode = false }) => {
-  const notificationRef = useRef(null);
-  const beforeBgRef = useRef(null);
-  const afterBgRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Calculer la position pour l'effet parallaxe
-    const updatePosition = () => {
-      if (notificationRef.current && beforeBgRef.current && afterBgRef.current) {
-        const rect = notificationRef.current.getBoundingClientRect();
-        const top = rect.top;
-        beforeBgRef.current.style.top = `-${top}px`;
-        afterBgRef.current.style.top = `-${top}px`;
-      }
-    };
-
-    // Initialiser la position
-    updatePosition();
-
-    // Mettre à jour au redimensionnement
-    const handleResize = () => {
-      setTimeout(updatePosition, 250);
-    };
-
-    window.addEventListener('resize', handleResize);
-
     // Animation d'apparition avec délai
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, index * 200);
+    }, index * 50);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
     };
   }, [index]);
+
+  // Générer l'initiale pour l'avatar
+  const getInitials = (name) => {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.charAt(0).toUpperCase();
+  };
 
   // Formater la date
   const formatDate = (dateString) => {
@@ -63,29 +49,32 @@ const Comment = ({ comment, index = 0, isDarkMode = false }) => {
     });
   };
 
-  return (
-    <li className={`comment-item ${index === 0 ? 'one' : index === 1 ? 'two' : 'three'}`}>
-      <div className="notification-container">
-        <div 
-          ref={notificationRef}
-          className={`notification ${isDarkMode ? 'dark-mode' : ''}`}
-        >
-          {/* Arrière-plans pour effet parallaxe */}
-          <span ref={beforeBgRef} className="notification-bg-before"></span>
-          <span ref={afterBgRef} className="notification-bg-after"></span>
+  const authorName = comment.author || 'Utilisateur anonyme';
+  const initials = getInitials(authorName);
 
-          {/* En-tête */}
+  return (
+    <li className="comment-item">
+      <div className="notification-container">
+        <div className={`notification ${isDarkMode ? 'dark-mode' : ''}`}>
+          {/* En-tête avec avatar */}
           <header>
-            <h2>Commentaire</h2>
-            <span className="timestamp">{formatDate(comment.createdAt)}</span>
+            <div className="avatar">{initials}</div>
+            <div className="header-content">
+              <h2>{authorName}</h2>
+              <span className="timestamp">{formatDate(comment.createdAt)}</span>
+            </div>
           </header>
 
           {/* Contenu */}
           <div className="content">
-            <span className="sender">{comment.author || 'Utilisateur anonyme'}</span>
             <span className="message">{comment.content}</span>
             {comment.likes !== undefined && comment.likes > 0 && (
-              <span className="more">{comment.likes} like{comment.likes > 1 ? 's' : ''}</span>
+              <span className="more">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                {comment.likes} like{comment.likes > 1 ? 's' : ''}
+              </span>
             )}
           </div>
         </div>
@@ -94,14 +83,10 @@ const Comment = ({ comment, index = 0, isDarkMode = false }) => {
   );
 };
 
-// Composant pour afficher une liste de commentaires avec l'effet empilé
-export const CommentList = ({ comments = [], maxVisible = 3, autoDarkMode = true }) => {
+// Composant pour afficher une liste de commentaires style notifications Google
+export const CommentList = ({ comments = [], autoDarkMode = false }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const wrapperRef = useRef(null);
-
-  // Limiter le nombre de commentaires visibles
-  const visibleComments = comments.slice(0, maxVisible);
 
   useEffect(() => {
     // Animation d'apparition
@@ -109,7 +94,7 @@ export const CommentList = ({ comments = [], maxVisible = 3, autoDarkMode = true
       setIsVisible(true);
     }, 100);
 
-    // Activer le mode sombre après l'animation initiale
+    // Activer le mode sombre après l'animation initiale si activé
     if (autoDarkMode) {
       const darkModeTimer = setTimeout(() => {
         setIsDarkMode(true);
@@ -123,19 +108,15 @@ export const CommentList = ({ comments = [], maxVisible = 3, autoDarkMode = true
     return () => clearTimeout(timer);
   }, [autoDarkMode]);
 
-  if (visibleComments.length === 0) {
+  if (comments.length === 0) {
     return null;
   }
 
   return (
-    <div className="comment-notification-wrapper" ref={wrapperRef}>
-      {/* Arrière-plans globaux */}
-      <span className="comment-bg-before" style={{ opacity: isDarkMode ? 1 : 0 }}></span>
-      <span className="comment-bg-after" style={{ opacity: isDarkMode ? 0 : 1 }}></span>
-
-      {/* Liste de commentaires */}
+    <div className="comment-notification-wrapper">
+      {/* Liste de commentaires - Tous affichés pour permettre le scroll */}
       <ul className={`comment-list ${isVisible ? 'visible animate-in' : ''}`}>
-        {visibleComments.map((comment, index) => (
+        {comments.map((comment, index) => (
           <Comment
             key={comment.id || index}
             comment={comment}
