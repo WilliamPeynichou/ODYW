@@ -1,12 +1,12 @@
 // Gestion des requêtes SQL pour les commentaires
 
-import { db } from '../db/index.js';
+import { pool } from '../db/index.js';
 
 // Récupérer tous les commentaires d'un vidéo
 export const getCommentsByVideoId = async (videoId) => {
     if (!Number.isInteger(videoId)) throw new Error('Comment id doit être un integer');
     try {
-        const [rows] = await db.execute(
+        const [rows] = await pool.execute(
             'SELECT * FROM comments WHERE video_id = ? ORDER BY created_at DESC',
             [videoId]
         );
@@ -21,7 +21,7 @@ export const getCommentsByVideoId = async (videoId) => {
 export const createComment = async (videoId, content) => {
     if (!Number.isInteger(videoId)) throw new Error('Comment id doit être un integer');
     try {
-        const [result] = await db.execute(
+        const [result] = await pool.execute(
             'INSERT INTO comments (video_id, content) VALUES (?, ?)',
             [videoId, content]
         );
@@ -36,7 +36,7 @@ export const createComment = async (videoId, content) => {
 export const updateComment = async (id, content) => {
     if (!Number.isInteger(id)) throw new Error('Comment id doit être un integer');
     try {
-        const [result] = await db.execute(
+        const [result] = await pool.execute(
             'UPDATE comments SET content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
             [content, id]
         );
@@ -51,7 +51,7 @@ export const updateComment = async (id, content) => {
 export const deleteComment = async (id) => {
     if (!Number.isInteger(id)) throw new Error('Comment id doit être un integer');
     try {
-        const [result] = await db.execute(
+        const [result] = await pool.execute(
             'DELETE FROM comments WHERE id = ?',
             [id]
         );

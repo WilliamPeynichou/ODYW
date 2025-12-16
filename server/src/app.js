@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import testRoutes from './routes/test.route.js';
+import commentRoutes from './routes/comments.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(morgan('dev'));
 
 // les routes
 app.use('/api/test', testRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.use((err, res) => {
     console.error(err);
