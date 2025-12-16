@@ -22,18 +22,9 @@ export const uploadVideo = async (req, res) => {
             return sendValidationError(res, VALIDATION_ERRORS.NO_VIDEO_FILE);
         }
 
-        // Récupérer les données du formulaire (title et theme)
+        // Les données ont déjà été validées par le middleware Zod
+        // req.body contient maintenant des données sûres et typées
         const { title, theme_id } = req.body;
-        
-        if (!title || !theme_id) {
-            // Supprimer le fichier si les données requises sont manquantes
-            if (fs.existsSync(req.file.path)) {
-                fs.unlink(req.file.path, (err) => {
-                    if (err) console.error('Erreur lors de la suppression du fichier:', err);
-                });
-            }
-            return sendValidationError(res, VALIDATION_ERRORS.MISSING_FIELDS);
-        }
 
         // Construire l'URL de la vidéo
         const video_url = `/uploads/${req.file.filename}`;
@@ -84,6 +75,7 @@ export const getAllVideos = async (req, res) => {
 // Contrôleur pour récupérer une vidéo par son ID
 export const getVideoById = async (req, res) => {
     try {
+        // L'ID a été validé par le middleware Zod et est maintenant un nombre entier positif
         const { id } = req.params;
 
         const video = await videoService.getVideoById(id);
@@ -102,6 +94,7 @@ export const getVideoById = async (req, res) => {
 // Contrôleur pour mettre à jour une vidéo
 export const updateVideo = async (req, res) => {
     try {
+        // L'ID et le body ont été validés par les middlewares Zod
         const { id } = req.params;
         const { title, theme_id } = req.body;
 
@@ -112,14 +105,15 @@ export const updateVideo = async (req, res) => {
         }
 
         // Préparer les données de mise à jour
+        // Les données sont déjà validées par Zod, pas besoin de vérifications supplémentaires
         const updateData = {};
 
-        // Ajouter title si fourni
+        // Ajouter title si fourni (déjà validé par Zod)
         if (title !== undefined) {
             updateData.title = title;
         }
 
-        // Ajouter theme_id si fourni
+        // Ajouter theme_id si fourni (déjà validé par Zod)
         if (theme_id !== undefined) {
             updateData.theme_id = theme_id;
         }
@@ -150,7 +144,8 @@ export const updateVideo = async (req, res) => {
             }
         }
 
-        // Vérifier qu'au moins un champ est fourni pour la mise à jour
+        // Le schéma Zod garantit qu'au moins un champ est fourni
+        // Mais on garde cette vérification par sécurité
         if (Object.keys(updateData).length === 0) {
             return sendValidationError(res, VALIDATION_ERRORS.MISSING_FIELDS);
         }
@@ -181,6 +176,7 @@ export const updateVideo = async (req, res) => {
 // Contrôleur pour supprimer une vidéo
 export const deleteVideo = async (req, res) => {
     try {
+        // L'ID a été validé par le middleware Zod
         const { id } = req.params;
 
         // Récupérer l'URL de la vidéo avant suppression
