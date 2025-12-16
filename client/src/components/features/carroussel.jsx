@@ -1,45 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getAllVideos } from '../../service/videoService';
 
 const Carrousel = ({ videos = [] }) => {
-  // Vidéos de test par défaut si aucune vidéo n'est fournie
-  const defaultVideos = [
-    {
-      id: 1,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-      title: 'Aventure en montagne',
-      description: 'Découvrez cette magnifique aventure'
-    },
-    {
-      id: 2,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      thumbnail: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800',
-      title: 'Plage paradisiaque',
-      description: 'Un moment de détente au bord de l\'océan'
-    },
-    {
-      id: 3,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      thumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
-      title: 'Forêt mystérieuse',
-      description: 'Exploration d\'une forêt enchantée'
-    },
-    {
-      id: 4,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-      thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
-      title: 'Coucher de soleil',
-      description: 'Un magnifique coucher de soleil'
-    },
-    {
-      id: 5,
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-      thumbnail: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
-      title: 'Voyage en ville',
-      description: 'Découvrez la vie urbaine'
-    }
-  ];
-
   // Fonction pour mélanger aléatoirement un tableau
   const shuffleArray = (array) => {
     const shuffled = [...array];
@@ -53,11 +15,48 @@ const Carrousel = ({ videos = [] }) => {
   // Mélanger les vidéos de manière aléatoire au chargement
   const [shuffledVideos, setShuffledVideos] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const videoRefs = useRef({});
 
+  // Charger les vidéos depuis l'API
   useEffect(() => {
-    const videosToUse = videos.length > 0 ? videos : defaultVideos;
-    setShuffledVideos(shuffleArray(videosToUse));
+    const loadVideos = async () => {
+      try {
+        setLoading(true);
+        
+        // Si des vidéos sont passées en props, on les utilise
+        if (videos.length > 0) {
+          setShuffledVideos(shuffleArray(videos));
+          setLoading(false);
+          return;
+        }
+
+        // Sinon, on charge les vidéos depuis l'API
+        const videosData = await getAllVideos();
+        
+        // Mapper les données de l'API vers le format attendu par le carrousel
+        const mappedVideos = videosData.map(video => ({
+          id: video.id,
+          title: video.title || 'Sans titre',
+          description: video.description || '',
+          url: video.video_url ? `http://localhost:3000/${video.video_url}` : null,
+          thumbnail: null, // Pas de thumbnail pour l'instant
+        }));
+
+        // Filtrer les vidéos qui ont une URL valide
+        const validVideos = mappedVideos.filter(video => video.url !== null);
+
+        // Mélanger aléatoirement les vidéos
+        setShuffledVideos(shuffleArray(validVideos));
+      } catch (error) {
+        console.error('Erreur lors du chargement des vidéos:', error);
+        setShuffledVideos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVideos();
   }, [videos]);
 
   // Navigation vers l'élément précédent
@@ -117,6 +116,14 @@ const Carrousel = ({ videos = [] }) => {
       // L'événement timeupdate gérera déjà la limite
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center w-full h-96 bg-gray-100 rounded-lg">
+        <p className="text-gray-500">Chargement des vidéos...</p>
+      </div>
+    );
+  }
 
   if (!shuffledVideos || shuffledVideos.length === 0) {
     return (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../layout/header';
 import { CommentList } from './Comment';
 import { getVideoById } from '../../service/videoService';
+import { getCommentsByVideoId, createComment } from '../../service/commentService';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -57,40 +58,23 @@ const VideoDetails = () => {
 
   const loadComments = async () => {
     try {
-      // TODO: Remplacer par votre endpoint API
-      // const response = await fetch(`/api/videos/${id}/comments`);
-      // const data = await response.json();
-      // setComments(data);
+      // Récupérer les commentaires depuis l'API
+      const commentsData = await getCommentsByVideoId(id);
+      
+      // Mapper les données de l'API vers le format attendu par le composant
+      const mappedComments = commentsData.map(comment => ({
+        id: comment.id,
+        author: comment.author || 'Utilisateur anonyme', // Si pas d'auteur dans la BDD, utiliser anonyme
+        content: comment.content,
+        likes: comment.likes || 0, // Si pas de likes dans la BDD, mettre 0
+        createdAt: comment.created_at || comment.createdAt,
+      }));
 
-      // Commentaires fictifs pour tester
-      const mockComments = [
-        {
-          id: 1,
-          author: 'Jean Dupont',
-          content: 'Superbe vidéo ! Les paysages sont magnifiques. J\'aimerais bien y aller un jour.',
-          likes: 12,
-          createdAt: '2024-01-16T14:20:00Z'
-        },
-        {
-          id: 2,
-          author: 'Marie Martin',
-          content: 'Merci pour ce partage ! Ça donne vraiment envie de partir à l\'aventure.',
-          likes: 8,
-          createdAt: '2024-01-17T09:15:00Z'
-        },
-        {
-          id: 3,
-          author: 'Pierre Durand',
-          content: 'Quel endroit incroyable ! Est-ce que vous avez d\'autres vidéos de cette région ?',
-          likes: 5,
-          createdAt: '2024-01-18T16:45:00Z'
-        }
-      ];
-
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setComments(mockComments);
+      setComments(mappedComments);
     } catch (err) {
       console.error('Erreur lors du chargement des commentaires:', err);
+      // En cas d'erreur, on garde un tableau vide plutôt que de bloquer l'affichage
+      setComments([]);
     }
   };
 
@@ -110,25 +94,25 @@ const VideoDetails = () => {
     if (!newComment.trim()) return;
 
     try {
-      // TODO: Appel API pour ajouter un commentaire
-      // await fetch(`/api/videos/${id}/comments`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ content: newComment }),
-      // });
-
-      // Ajout temporaire du commentaire
-      const comment = {
-        id: comments.length + 1,
-        author: 'Moi',
-        content: newComment,
-        likes: 0,
-        createdAt: new Date().toISOString()
+      // Créer le commentaire via l'API
+      const createdComment = await createComment(id, newComment.trim());
+      
+      // Mapper le commentaire créé vers le format attendu par le composant
+      const mappedComment = {
+        id: createdComment.id,
+        author: createdComment.author || 'Utilisateur anonyme',
+        content: createdComment.content,
+        likes: createdComment.likes || 0,
+        createdAt: createdComment.created_at || createdComment.createdAt || new Date().toISOString(),
       };
-      setComments([comment, ...comments]);
+
+      // Ajouter le nouveau commentaire en haut de la liste
+      setComments([mappedComment, ...comments]);
       setNewComment('');
     } catch (err) {
       console.error('Erreur lors de l\'ajout du commentaire:', err);
+      // Afficher un message d'erreur à l'utilisateur (optionnel)
+      alert('Erreur lors de l\'ajout du commentaire. Veuillez réessayer.');
     }
   };
 
@@ -181,9 +165,9 @@ const VideoDetails = () => {
           Retour
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-4xl mx-auto">
           {/* Colonne principale - Vidéo et détails */}
-          <div className="lg:col-span-2">
+          <div>
             {/* Lecteur vidéo */}
             <div className="bg-black rounded-lg overflow-hidden mb-6">
               <video
@@ -239,6 +223,28 @@ const VideoDetails = () => {
                   </svg>
                   <span className="font-medium">{likesCount}</span>
                 </button>
+                
+                {/* Bouton Modifier */}
+                <button
+                  onClick={() => navigate(`/video/${id}/edit`)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  <span>Modifier</span>
+                </button>
               </div>
 
               {/* Description */}
@@ -284,26 +290,14 @@ const VideoDetails = () => {
                 </div>
               </form>
 
-              {/* Liste des commentaires avec style notifications Apple */}
+              {/* Liste des commentaires avec style notifications Google */}
               {comments.length > 0 ? (
-                <CommentList comments={comments} maxVisible={3} autoDarkMode={true} />
+                <CommentList comments={comments} />
               ) : (
                 <p className="text-gray-500 text-center py-8">
                   Aucun commentaire pour le moment. Soyez le premier à commenter !
                 </p>
               )}
-            </div>
-          </div>
-
-          {/* Colonne latérale - Suggestions (optionnel) */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Vidéos suggérées
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Les suggestions de vidéos apparaîtront ici
-              </p>
             </div>
           </div>
         </div>
