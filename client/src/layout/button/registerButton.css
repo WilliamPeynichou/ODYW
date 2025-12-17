@@ -64,3 +64,20 @@
   --active: 0.5;
 }
 
+INSERT INTO videos (title, theme_id, video_url, duration, size_mb, user_id) VALUES
+('Video 1765879419429', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765879419429.mp4', 30, 4.5, FLOOR(1 + RAND() * 10)),
+('Video 1765882626668', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765882626668.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765883952863', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765883952863.mov', 30, 9.6, FLOOR(1 + RAND() * 10)),
+('Video 1765883978393', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765883978393.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884008146', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884008146.mov', 30, 44.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884035731', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884035731.mov', 30, 35.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884056885', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884056885.mov', 30, 16.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884074573', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884074573.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884093173', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884093173.mov', 30, 22.0, FLOOR(1 + RAND() * 10)),
+('Video 1765887401551', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887401551.mp4', 30, 0.77, FLOOR(1 + RAND() * 10)),
+('Video 1765887559205', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887559205.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765887605296', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887605296.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765890309821', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765890309821.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765892371981', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765892371981.mp4', 30, 0.77, FLOOR(1 + RAND() * 10)),
+('Video 1765896280160', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765896280160.mov', 30, 24.0, FLOOR(1 + RAND() * 10));
+

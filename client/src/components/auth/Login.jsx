@@ -70,22 +70,18 @@ const Login = () => {
 
     setIsSubmitting(true);
     try {
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne et supprimer le setTimeout
-      // const response = await login(formData.email, formData.password);
+      const response = await login(formData.email, formData.password);
       
-      // Simulation en attendant l'endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Stocker le token et les données utilisateur
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+      }
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
       
-      // Une fois l'endpoint prêt, utiliser ce code :
-      // const response = await login(formData.email, formData.password);
-      // localStorage.setItem('token', response.token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
-      // navigate('/');
-      
-      // Pour l'instant, juste une redirection après validation
-      console.log('Données de connexion:', formData);
-      alert('Fonctionnalité de connexion en attente de l\'endpoint backend');
-      // navigate('/');
+      // Rediriger vers la page d'accueil
+      navigate('/');
     } catch (error) {
       setSubmitError(error.message || 'Une erreur est survenue lors de la connexion');
     } finally {
