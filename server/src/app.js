@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import testRoutes from './routes/test.route.js';
-
+import authRoutes from './routes/auth.route.js';
 import commentRoutes from './routes/comments.route.js'
 import videosRoutes from './routes/videos.route.js';
 import themesRoutes from './routes/themes.route.js';
@@ -29,6 +29,8 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // les routes
 app.use('/api/test', testRoutes);
+
+app.use('/api/auth', authRoutes);
 
 app.use('/api/comments', commentRoutes);
 
