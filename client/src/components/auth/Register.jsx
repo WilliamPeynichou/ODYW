@@ -23,20 +23,9 @@ const Register = () => {
     return emailRegex.test(email);
   };
 
-  // Validation du mot de passe (au moins 6 caractères, une majuscule, une minuscule, un chiffre)
+  // Validation du mot de passe (désactivée pendant le développement)
   const validatePassword = (password) => {
-    if (password.length < 6) {
-      return 'Le mot de passe doit contenir au moins 6 caractères';
-    }
-    if (!/[A-Z]/.test(password)) {
-      return 'Le mot de passe doit contenir au moins une majuscule';
-    }
-    if (!/[a-z]/.test(password)) {
-      return 'Le mot de passe doit contenir au moins une minuscule';
-    }
-    if (!/[0-9]/.test(password)) {
-      return 'Le mot de passe doit contenir au moins un chiffre';
-    }
+    // Validation simplifiée pour le développement
     return '';
   };
 
@@ -65,14 +54,9 @@ const Register = () => {
       newErrors.emailVerification = 'Les emails ne correspondent pas';
     }
 
-    // Validation mot de passe
+    // Validation mot de passe (simplifiée pour le développement)
     if (!formData.password) {
       newErrors.password = 'Le mot de passe est requis';
-    } else {
-      const passwordError = validatePassword(formData.password);
-      if (passwordError) {
-        newErrors.password = passwordError;
-      }
     }
 
     // Validation vérification mot de passe
@@ -236,9 +220,6 @@ const Register = () => {
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Au moins 6 caractères, une majuscule, une minuscule et un chiffre
-                </p>
               </div>
 
               {/* Vérification Mot de passe */}
