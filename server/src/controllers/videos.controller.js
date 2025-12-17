@@ -4,6 +4,43 @@ import { getVideoDuration } from "../utils/video.util.js";
 // import de fs pour supprimer le fichier si invalide
 import fs from 'fs';  
 
+export const rateVideo = async (req, res) => {
+    const videoId = req.params.id;
+    const { rating } = req.body; // On attend { "rating": 4 } par exemple
+    const userId = req.user ? req.user.id : 1; // ID du user connecté
+
+    // Validation simple (1 à 5)
+    if (rating < 1 || rating > 5) {
+        return res.status(400).json({ error: "La note doit être entre 1 et 5" });
+    }
+
+    try {
+        // La requête magique (Upsert)
+        await db.query(
+            `INSERT INTO ratings (video_id, user_id, rating) 
+             VALUES (?, ?, ?) 
+             ON DUPLICATE KEY UPDATE rating = VALUES(rating)`,
+            [videoId, userId, rating]
+        );
+
+        // Optionnel : On recalcule la moyenne immédiatement pour l'afficher
+        const [stats] = await db.query(
+            'SELECT AVG(rating) as average, COUNT(*) as count FROM ratings WHERE video_id = ?',
+            [videoId]
+        );
+
+        res.json({ 
+            message: "Note enregistrée", 
+            newAverage: stats[0].average,
+            count: stats[0].count 
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+};
+
 // controller pour créer une vidéo
 export const createVideoController = async (req, res) => {
 

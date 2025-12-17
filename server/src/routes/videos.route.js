@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { uploadVideo } from '../middlewares/upload.middleware.js';
-import { createVideoController, getAllVideosController, getVideoByIdController, updateVideoController, deleteVideoController } from '../controllers/videos.controller.js';
+import { createVideoController, getAllVideosController, getVideoByIdController, updateVideoController, deleteVideoController, rateVideo } from '../controllers/videos.controller.js';
 
 
 const router = Router();
@@ -18,6 +18,8 @@ router.get('/:id', getVideoByIdController);
 router.put('/:id', uploadVideo.single('video'), updateVideoController);
 // route pour supprimer une vidéo
 router.delete('/:id', deleteVideoController);
+// route pour le rating
+router.post('/videos/:id/rate', rateVideo);
 
 
 export default router;
