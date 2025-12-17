@@ -7,9 +7,7 @@ const createVideoSchema = z.object({
     title: z
         .string()
         .min(1, { message: 'Le titre est requis' })
-        .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
-        .optional()
-        .or(z.literal('')),
+        .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' }),
     theme_id: z
         .string()
         .transform((val) => parseInt(val, 10))
@@ -18,19 +16,18 @@ const createVideoSchema = z.object({
         })
 });
 
-// Schéma de validation pour la mise à jour d'une vidéo (tous les champs optionnels)
+// Schéma de validation pour la mise à jour d'une vidéo
 const updateVideoSchema = z.object({
     title: z
         .string()
-        .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
-        .optional(),
+        .min(1, { message: 'Le titre est requis' })
+        .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' }),
     theme_id: z
         .string()
         .transform((val) => parseInt(val, 10))
         .refine((val) => !isNaN(val) && val > 0, {
-            message: 'Le thème doit être un nombre valide'
+            message: 'Le thème est requis et doit être un nombre valide'
         })
-        .optional()
 });
 
 // Middleware pour valider la création d'une vidéo
