@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getAllThemes } from '../../service/themeService';
 
-const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter }) => {
+const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter, searchKeyword }) => {
   const [themes, setThemes] = useState([]);
   const [loadingThemes, setLoadingThemes] = useState(true);
+  const [localSearchKeyword, setLocalSearchKeyword] = useState(searchKeyword || '');
 
   // Charger les thèmes depuis l'API
   useEffect(() => {
@@ -22,6 +23,21 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
     loadThemes();
   }, []);
 
+  // Extraire les titres des vidéos pour les mots-clés
+  const videoKeywords = useMemo(() => {
+    if (!videos || videos.length === 0) return [];
+    const titles = videos
+      .map(video => video.title || video.name)
+      .filter(title => title && title.trim() !== '');
+    // Retourner les titres uniques
+    return [...new Set(titles)];
+  }, [videos]);
+
+  // Synchroniser le mot-clé local avec la prop
+  useEffect(() => {
+    setLocalSearchKeyword(searchKeyword || '');
+  }, [searchKeyword]);
+
   // Options de filtrage par date
   const dateFilterOptions = [
     { value: 'all', label: 'Toutes les dates' },
@@ -36,6 +52,7 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
     onFilterChange({
       theme: e.target.value === 'all' ? null : e.target.value,
       date: selectedDateFilter,
+      searchKeyword: localSearchKeyword,
     });
   };
 
@@ -43,13 +60,26 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
     onFilterChange({
       theme: selectedTheme,
       date: e.target.value,
+      searchKeyword: localSearchKeyword,
+    });
+  };
+
+  const handleSearchChange = (e) => {
+    const keyword = e.target.value;
+    setLocalSearchKeyword(keyword);
+    onFilterChange({
+      theme: selectedTheme,
+      date: selectedDateFilter,
+      searchKeyword: keyword,
     });
   };
 
   const handleReset = () => {
+    setLocalSearchKeyword('');
     onFilterChange({
       theme: null,
       date: 'all',
+      searchKeyword: '',
     });
   };
 
@@ -75,6 +105,64 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 flex-1 md:justify-end">
+          {/* Barre de recherche */}
+          <div className="flex-1 sm:flex-initial min-w-[250px]">
+            <label htmlFor="search-filter" className="block text-sm font-medium text-gray-700 mb-2">
+              Rechercher par mot-clé
+            </label>
+            <div className="relative">
+              <input
+                id="search-filter"
+                type="text"
+                value={localSearchKeyword}
+                onChange={handleSearchChange}
+                placeholder="Rechercher dans les titres..."
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            {/* Suggestions de mots-clés basées sur les titres */}
+            {localSearchKeyword && videoKeywords.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="text-xs text-gray-500">Suggestions:</span>
+                {videoKeywords
+                  .filter(keyword => 
+                    keyword.toLowerCase().includes(localSearchKeyword.toLowerCase())
+                  )
+                  .slice(0, 5)
+                  .map((keyword, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setLocalSearchKeyword(keyword);
+                        onFilterChange({
+                          theme: selectedTheme,
+                          date: selectedDateFilter,
+                          searchKeyword: keyword,
+                        });
+                      }}
+                      className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                    >
+                      {keyword}
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+
           {/* Filtre par thème */}
           <div className="flex-1 sm:flex-initial min-w-[200px]">
             <label htmlFor="theme-filter" className="block text-sm font-medium text-gray-700 mb-2">
@@ -122,7 +210,7 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
           </div>
 
           {/* Bouton réinitialiser */}
-          {(selectedTheme || (selectedDateFilter && selectedDateFilter !== 'all')) && (
+          {(selectedTheme || (selectedDateFilter && selectedDateFilter !== 'all') || localSearchKeyword) && (
             <div className="flex items-end">
               <button
                 onClick={handleReset}
@@ -150,10 +238,28 @@ const VideoFilter = ({ videos, onFilterChange, selectedTheme, selectedDateFilter
       </div>
 
       {/* Indicateur de filtres actifs */}
-      {(selectedTheme || (selectedDateFilter && selectedDateFilter !== 'all')) && (
+      {(selectedTheme || (selectedDateFilter && selectedDateFilter !== 'all') || localSearchKeyword) && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-600">Filtres actifs :</span>
+            {localSearchKeyword && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                Recherche: {localSearchKeyword}
+                <button
+                  onClick={() => {
+                    setLocalSearchKeyword('');
+                    onFilterChange({
+                      theme: selectedTheme,
+                      date: selectedDateFilter,
+                      searchKeyword: '',
+                    });
+                  }}
+                  className="hover:text-purple-900"
+                >
+                  ×
+                </button>
+              </span>
+            )}
             {selectedTheme && (
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 Thème: {selectedTheme}
