@@ -121,22 +121,18 @@ const Register = () => {
         password: formData.password,
       };
 
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne et supprimer le setTimeout
-      // const response = await register(userData);
+      const response = await register(userData);
       
-      // Simulation en attendant l'endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Stocker le token et les données utilisateur si fournis
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+      }
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
       
-      // Une fois l'endpoint prêt, utiliser ce code :
-      // const response = await register(userData);
-      // localStorage.setItem('token', response.token);
-      // localStorage.setItem('user', JSON.stringify(response.user));
-      // navigate('/login');
-      
-      // Pour l'instant, juste une confirmation après validation
-      console.log('Données d\'inscription:', userData);
-      alert('Fonctionnalité d\'inscription en attente de l\'endpoint backend');
-      // navigate('/login');
+      // Rediriger vers la page de connexion ou d'accueil
+      navigate('/login');
     } catch (error) {
       setSubmitError(error.message || 'Une erreur est survenue lors de l\'inscription');
     } finally {

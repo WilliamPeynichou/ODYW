@@ -60,8 +60,41 @@ export const register = async (userData) => {
   }
 };
 
+/**
+ * Récupère le profil de l'utilisateur connecté
+ * @returns {Promise<Object>} Promise qui résout avec les données du profil utilisateur
+ */
+export const getProfile = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.error || 'Erreur lors de la récupération du profil');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erreur getProfile:', error);
+    throw error;
+  }
+};
+
 export default {
   login,
   register,
+  getProfile,
 };
 
