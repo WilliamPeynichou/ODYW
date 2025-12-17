@@ -17,7 +17,7 @@ export async function authenticate(req, res, next){
         // dans le cas où le token est invalide
         const payload = jwt.verify(token, env.jwtSecret);
         // récupération de l'utilisateur dans la base de données
-        const [rows] = await pool.execute( 'SELECT id, email, username FROM users WHERE id = ?', [payload.sub]);
+        const [rows] = await pool.execute( 'SELECT id, email, username FROM users WHERE id = ?', [payload.id]);
         // si l'utilisateur n'est pas trouvé, on throw une erreur
         if(!rows[0]){
             return res.status(401).json({

@@ -31,11 +31,9 @@ const Login = () => {
       newErrors.email = 'Format d\'email invalide';
     }
 
-    // Validation mot de passe
+    // Validation mot de passe (simplifiée pour le développement)
     if (!formData.password) {
       newErrors.password = 'Le mot de passe est requis';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
     }
 
     setErrors(newErrors);
@@ -80,11 +78,10 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(response.user));
       }
       
-      // Rediriger vers la page d'accueil
-      navigate('/');
+      // Rediriger vers la page d'accueil avec rechargement pour mettre à jour le header
+      window.location.href = '/';
     } catch (error) {
       setSubmitError(error.message || 'Une erreur est survenue lors de la connexion');
-    } finally {
       setIsSubmitting(false);
     }
   };
