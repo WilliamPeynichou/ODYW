@@ -1,18 +1,22 @@
 // Middleware pour valider les inputs des vidéos
-
 import { z } from 'zod';
 
 // Schéma de validation pour la création d'une vidéo
 const createVideoSchema = z.object({
     title: z
+        // verif que ce soit une string
         .string()
+        // min 1 caractère
         .min(1, { message: 'Le titre est requis' })
+        // max 100 caractères avec un msg d'erreur
         .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
-        .optional()
         .or(z.literal('')),
     theme_id: z
+        // verif que ce soit une string
         .string()
+        // transformer la value en nombre/integer
         .transform((val) => parseInt(val, 10))
+        // verifie que la value est pas "not a number", donc si c'est un nombre valide et sup à 0
         .refine((val) => !isNaN(val) && val > 0, {
             message: 'Le thème est requis et doit être un nombre valide'
         })
@@ -21,6 +25,7 @@ const createVideoSchema = z.object({
 // Schéma de validation pour la mise à jour d'une vidéo (tous les champs optionnels)
 const updateVideoSchema = z.object({
     title: z
+        // verifie que ce soit une string
         .string()
         .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
         .optional(),
@@ -36,14 +41,14 @@ const updateVideoSchema = z.object({
 // Middleware pour valider la création d'une vidéo
 export const validateCreateVideo = (req, res, next) => {
     try {
-        // Vérifier la présence du fichier vidéo
+        // si pas de fichier dans la requete, renvoyer une erreur
         if (!req.file) {
             return res.status(400).json({ 
                 error: 'Aucune vidéo n\'a été uploadée' 
             });
         }
 
-        // Valider les données du body
+        // dans createVideoSchema, on parse/valide les données du body
         createVideoSchema.parse(req.body);
         
         // Si tout est valide, passer au prochain middleware
@@ -67,7 +72,8 @@ export const validateCreateVideo = (req, res, next) => {
 export const validateUpdateVideo = (req, res, next) => {
     try {
         // Pour la mise à jour, le fichier vidéo est optionnel
-        // On valide seulement les données du body
+        
+        // dans updateVideoSchema, on parse/valide les données du body
         updateVideoSchema.parse(req.body);
         
         // Si tout est valide, passer au prochain middleware
