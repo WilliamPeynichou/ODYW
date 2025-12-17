@@ -3,8 +3,8 @@ import introVideo from '../../assets/1.-Logotype-Reveal-16_9.mp4';
 
 const VideoIntro = () => {
   return (
-    <div className="fixed top-0 left-0 w-full h-screen z-0 overflow-hidden bg-black">
-      <div className="absolute inset-0 bg-black/10 z-10" /> {/* Léger overlay pour s'assurer que le blanc ressorte bien après */}
+    <div className="fixed top-0 left-0 w-full h-full z-0 overflow-hidden bg-black">
+      <div className="absolute inset-0 bg-black/10 z-10" /> 
       <video
         className="w-full h-full object-cover"
         autoPlay
