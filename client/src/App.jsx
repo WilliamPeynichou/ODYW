@@ -4,6 +4,9 @@ import Home from './components/home'
 import VideoDetails from './components/features/videoDetails'
 import AddVideo from './components/features/AddVideo'
 import UpdateVideo from './components/features/UpdateVideo'
+import Login from './components/auth/Login'
+import Register from './components/auth/Register'
+import AdminDashboard from './pages/admin/AdminDashboard'
 import './App.css'
 
 function App() {
@@ -14,6 +17,9 @@ function App() {
         <Route path="/video/:id" element={<VideoDetails />} />
         <Route path="/video/:id/edit" element={<UpdateVideo />} />
         <Route path="/add-video" element={<AddVideo />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   )

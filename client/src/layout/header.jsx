@@ -1,5 +1,6 @@
 import React from 'react';
 import AddVideoButton from './button/addVideoButton';
+import LoginButton from './button/loginButton';
 
 const Header = () => {
   return (
@@ -9,7 +10,8 @@ const Header = () => {
           ODYWP
         </a>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-center gap-4">
+        <LoginButton />
         <AddVideoButton />
       </div>
     </header>
