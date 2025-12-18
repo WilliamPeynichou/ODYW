@@ -69,7 +69,7 @@ export const editComment = async (req, res) => {
         });
     }
 
-    if (!content || content.trim() ==='') {
+    if (!content || content.trim() === '') {
         return res.status(400).json({
             error: 'Lecontenu du commentaire est obligatoire.'
         });

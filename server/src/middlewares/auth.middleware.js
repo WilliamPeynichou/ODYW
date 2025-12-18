@@ -3,32 +3,67 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { pool } from '../db/index.js';
 
+// Middleware pour authentifier l'utilisateur via JWT
 export async function authenticate(req, res, next){
     try {
-        // récupération du token dans l'en-tête Authorization
+        // Récupération du token depuis le header Authorization
         const authorization = req.headers.authorization;
-        const token = authorization.replace('Bearer ', '');
-        // vérification du token
-        if(!token){
+
+        // Si header Authorization absent
+        if (!authorization) {
             return res.status(401).json({
                 message: 'Token non fourni'
             });
         }
-        // dans le cas où le token est invalide
-        const payload = jwt.verify(token, env.jwtSecret);
-        // récupération de l'utilisateur dans la base de données
-        const [rows] = await pool.execute( 'SELECT id, email, username FROM users WHERE id = ?', [payload.sub]);
-        // si l'utilisateur n'est pas trouvé, on throw une erreur
-        if(!rows[0]){
+
+        // Supprime "Bearer " pour ne garder que le token
+        const token = authorization.replace('Bearer ', '');
+        
+        // Vérification si le token existe après suppression de "Bearer "
+        if(!token){
+            return res.status(401).json({
+                message: 'Token invalide'
+            });
+        }
+
+        let payload;
+        try {
+            // Vérifie et décoder le token JWT
+            payload = jwt.verify(token, env.jwtSecret);
+            console.log('payload JWT:', payload);
+        } catch (error) {
+            // Si le token est invalide ou expiré
+            return res.status(401).json({
+                message: 'Token invalide ou expiré'
+            });
+        }
+
+        // Récupère l'utilisateur dans la bdd avec l'ID du token
+        const [rows] = await pool.execute(
+            'SELECT id, email, username, role_id FROM users WHERE id = ?',
+            [payload.sub]
+        );
+
+        // Si aucun utilisateur trouvé
+        if (!rows[0]) {
             return res.status(401).json({
                 message: 'Utilisateur non trouvé'
             });
         }
-        // on ajoute l'utilisateur à la requête
+
+        // Ajouter l'utilisateur à la requete pour les suivants ou le controller
         req.user = rows[0];
+
+        // Passe au middleware ou controller suivant
         next();
-    } catch (error) {
-        error.status = 401;
-        next(error);
+
+    }catch(error){
+        // En cas de problèmes
+        console.error(error);
+        return res.status(500).json({
+            message: 'Erreur serveur'
+        });
     }
+
+
 };
