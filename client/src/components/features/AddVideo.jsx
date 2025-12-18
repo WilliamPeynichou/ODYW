@@ -33,8 +33,10 @@ const AddVideo = () => {
       // Rediriger vers la page d'accueil après succès
       navigate('/');
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la vidéo:', error);
-      alert(`Erreur lors de l'ajout de la vidéo: ${error.message}`);
+      console.error('Erreur complète lors de l\'ajout de la vidéo:', error);
+      console.error('Stack trace:', error.stack);
+      const errorMessage = error.message || 'Une erreur inconnue est survenue';
+      alert(`Erreur lors de l'ajout de la vidéo: ${errorMessage}\n\nVérifiez la console pour plus de détails.`);
     } finally {
       setIsSubmitting(false);
     }
