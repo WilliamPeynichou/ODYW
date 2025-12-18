@@ -3,17 +3,17 @@ import { pool } from '../db/index.js';
 // fonction pour créer une vidéo
 export async function createVideo(videoData){
     // video data en param est egal au titre, theme_id etc
-    const { title, theme_id, video_url, duration, size_mb } = videoData;
+    const { title, theme_id, video_url, duration, size_mb, user_id } = videoData;
 
     // vairable pour la requete sql
     const sql = `
-        INSERT INTO videos (title, theme_id, video_url, duration, size_mb)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO videos (title, theme_id, video_url, duration, size_mb, user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     // execution de la requete avec la methode execute
     // result est le premier tableau retourné par la requete sql
-    const [result] = await pool.execute(sql, [title, theme_id, video_url, duration, size_mb]);
+    const [result] = await pool.execute(sql, [title, theme_id, video_url, duration, size_mb, user_id]);
 
     // on retourne l'id de la video créée 
     return result.insertId;
@@ -24,9 +24,10 @@ export async function getAllVideos(){
  
     // const sql 
     const sql = `
-        SELECT v.*, t.name as theme_name
+        SELECT v.*, t.name as theme_name, u.username as user_username, u.email as user_email
         FROM videos v
         LEFT JOIN themes t ON v.theme_id = t.id
+        LEFT JOIN users u ON v.user_id = u.id
     `;
     // requete sql pour récupérer toutes les vidéos
     const [rows] = await pool.execute(sql);
@@ -41,9 +42,10 @@ export async function getVideoById(id){
 
     // sql 
     const sql = `
-        SELECT v.*, t.name as theme_name
+        SELECT v.*, t.name as theme_name, u.username as user_username, u.email as user_email
         FROM videos v
         LEFT JOIN themes t ON v.theme_id = t.id
+        LEFT JOIN users u ON v.user_id = u.id
         WHERE v.id = ?
     `;
 
@@ -68,7 +70,7 @@ export async function updateVideo(id, videoData){
     const existingVideo = await getVideoById(id);
 
     // liste des champs autorisés à être modifiés
-    const allowedFields = ['title', 'theme_id', 'video_url', 'duration', 'size_mb'];
+    const allowedFields = ['title', 'theme_id'];
     
     // construire les champs à mettre à jour dynamiquement
     const updateFields = [];
