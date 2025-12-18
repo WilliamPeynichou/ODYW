@@ -41,7 +41,7 @@ export async function authenticate(req, res, next){
         // Récupère l'utilisateur dans la bdd avec l'ID du token
         const [rows] = await pool.execute(
             'SELECT id, email, username, role_id FROM users WHERE id = ?',
-            [payload.sub]
+            [payload.id]
         );
 
         // Si aucun utilisateur trouvé
