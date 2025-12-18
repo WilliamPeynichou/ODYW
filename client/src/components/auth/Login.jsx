@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../../layout/header';
 import Footer from '../../layout/footer';
-import { login } from '../../service/authService';
+import { login, getProfile } from '../../service/authService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -76,6 +76,22 @@ const Login = () => {
       }
       if (response.user) {
         localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      
+      // Récupérer le profil complet pour obtenir le role_id
+      try {
+        const profileData = await getProfile();
+        if (profileData.user) {
+          // Mettre à jour l'utilisateur dans le localStorage avec le role_id
+          const updatedUser = {
+            ...response.user,
+            role_id: profileData.user.role_id
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      } catch (profileError) {
+        console.warn('Impossible de récupérer le profil complet:', profileError);
+        // On continue quand même avec les données de base
       }
       
       // Rediriger vers la page d'accueil avec rechargement pour mettre à jour le header

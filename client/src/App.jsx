@@ -8,6 +8,7 @@ import Login from './components/auth/Login'
 import Register from './components/auth/Register'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import SuperAdminDashboard from './pages/admin/SuperAdminDashboard'
 import './App.css'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/superadmin" element={<SuperAdminDashboard />} />
       </Routes>
     </Router>
   )
