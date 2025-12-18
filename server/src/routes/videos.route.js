@@ -18,7 +18,7 @@ router.get('/', getAllVideosController);
 router.get('/:id', getVideoByIdController);
 
 // route pour modifier une vidéo (avec ou sans nouveau fichier)
-router.put('/:id', authenticate, checkOwnershipOrRole('videos'), uploadVideo.single('video'), validateUpdateVideo, updateVideoController);
+router.put('/:id', authenticate, checkOwnershipOrRole('videos'), validateUpdateVideo, updateVideoController);
 
 // route pour supprimer une vidéo
 router.delete('/:id', authenticate, checkOwnershipOrRole('videos'), deleteVideoController);
