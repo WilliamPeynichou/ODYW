@@ -3,7 +3,6 @@ import { uploadVideo } from '../middlewares/upload.middleware.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { validateCreateVideo, validateUpdateVideo } from '../middlewares/validator/validate.video.js';
 import { createVideoController, getAllVideosController, getVideoByIdController, updateVideoController, deleteVideoController } from '../controllers/videos.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
 import { checkOwnershipOrRole } from '../middlewares/authorization.middleware.js';
 
 const router = Router();
