@@ -5,6 +5,7 @@ import Footer from '../../layout/footer';
 import { CommentList } from './Comment';
 import { getVideoById, deleteVideo } from '../../service/videoService';
 import { getCommentsByVideoId, createComment, updateComment, deleteComment } from '../../service/commentService';
+import Rating from './Rating';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -13,8 +14,7 @@ const VideoDetails = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const [rating, setRating] = useState(0);
   const [newComment, setNewComment] = useState('');
 
   // Charger les détails de la vidéo
@@ -48,7 +48,8 @@ const VideoDetails = () => {
       };
 
       setVideo(mappedVideo);
-      setLikesCount(mappedVideo.likes);
+      // TODO: Charger la note depuis l'API si disponible
+      // setRating(videoData.rating || 0);
     } catch (err) {
       setError('Erreur lors du chargement de la vidéo');
       console.error(err);
@@ -79,15 +80,18 @@ const VideoDetails = () => {
     }
   };
 
-  const handleLike = async () => {
-    const newLikedState = !isLiked;
-    setIsLiked(newLikedState);
-    setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
-
-    // TODO: Appel API pour liker/unliker
-    // await fetch(`/api/videos/${id}/like`, {
-    //   method: newLikedState ? 'POST' : 'DELETE',
-    // });
+  const handleRatingChange = async (newRating) => {
+    setRating(newRating);
+    // TODO: Appel API pour sauvegarder la note
+    // try {
+    //   await fetch(`http://localhost:3000/api/videos/${id}/rating`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ rating: newRating })
+    //   });
+    // } catch (err) {
+    //   console.error('Erreur lors de la sauvegarde de la note:', err);
+    // }
   };
 
   const handleSubmitComment = async (e) => {
@@ -236,29 +240,12 @@ const VideoDetails = () => {
 
               {/* Actions */}
               <div className="flex items-center gap-4 mb-4">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    isLiked
-                      ? 'bg-red-100 text-red-600'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`}
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                  <span className="font-medium">{likesCount}</span>
-                </button>
+                {/* Système de notation */}
+                <Rating 
+                  videoId={id} 
+                  initialRating={rating}
+                  onRatingChange={handleRatingChange}
+                />
                 
                 {/* Bouton Modifier */}
                 <button
