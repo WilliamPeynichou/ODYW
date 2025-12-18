@@ -1,12 +1,50 @@
-import React from 'react';
-import introVideo from '../../assets/1.-Logotype-Reveal-16_9.mp4';
+import React, { useRef, useEffect } from 'react';
+import introVideo from '../../assets/background.mp4';
 
 const VideoIntro = () => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Gérer la transition en douceur lors de la boucle
+    const handleTimeUpdate = () => {
+      // Si la vidéo est presque à la fin, préparer la transition
+      if (video.duration && video.currentTime >= video.duration - 0.1) {
+        video.style.opacity = '0.95';
+      } else {
+        video.style.opacity = '1';
+      }
+    };
+
+    const handleEnded = () => {
+      // Transition en douceur lors du redémarrage
+      video.style.opacity = '0.95';
+      video.currentTime = 0;
+      
+      // Réafficher après un court délai pour une transition fluide
+      setTimeout(() => {
+        video.style.opacity = '1';
+        video.play();
+      }, 50);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
   return (
     <div className="fixed top-0 left-0 w-full h-full z-0 overflow-hidden bg-black">
       <div className="absolute inset-0 bg-black/10 z-10" /> 
       <video
-        className="w-full h-full object-cover"
+        ref={videoRef}
+        className="w-full h-full object-cover transition-opacity duration-300 ease-in-out"
         autoPlay
         muted
         loop

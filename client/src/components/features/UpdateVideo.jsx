@@ -35,16 +35,14 @@ const UpdateVideo = () => {
   const handleSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      // Préparer les données pour la mise à jour
-      const updateData = new FormData();
+      // Préparer les données pour la mise à jour en JSON
+      // Le backend n'accepte pas les fichiers dans la route PUT, seulement title et theme_id
+      const updateData = {};
       
-      // Si un nouveau fichier est fourni, l'ajouter
-      if (formData.file) {
-        updateData.append('video', formData.file);
+      // Ajouter le titre si fourni
+      if (formData.title !== undefined) {
+        updateData.title = formData.title || null;
       }
-      
-      // Ajouter le titre
-      updateData.append('title', formData.title);
       
       // Convertir theme en theme_id
       const themeId = formData.theme && !isNaN(parseInt(formData.theme)) 
@@ -52,7 +50,9 @@ const UpdateVideo = () => {
         : null;
       
       if (themeId !== null) {
-        updateData.append('theme_id', themeId.toString());
+        updateData.theme_id = themeId;
+      } else if (formData.theme !== undefined) {
+        updateData.theme_id = null;
       }
 
       // Mettre à jour la vidéo via l'API

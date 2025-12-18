@@ -1,5 +1,7 @@
 // Service pour interagir avec l'API de commentaires
 
+import { getAuthToken } from '../utils/authUtils';
+
 const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
@@ -37,20 +39,42 @@ export const getCommentsByVideoId = async (videoId) => {
  */
 export const createComment = async (videoId, content) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/comments/${videoId}`, {
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    
+    if (!token) {
+      throw new Error('Vous devez être connecté pour ajouter un commentaire');
+    }
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+    
+    const url = `${API_BASE_URL}/comments/${videoId}`;
+    console.log('Création de commentaire:', { url, videoId, content, hasToken: !!token });
+    
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify({ content }),
     });
 
+    console.log('Réponse du serveur:', { status: response.status, statusText: response.statusText });
+
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { error: `Erreur HTTP ${response.status}: ${response.statusText}` };
+      }
+      console.error('Erreur du serveur:', errorData);
       throw new Error(errorData.error || errorData.message || 'Erreur lors de la création du commentaire');
     }
 
     const data = await response.json();
+    console.log('Commentaire créé:', data);
     return { id: data.id, message: data.message };
   } catch (error) {
     console.error('Erreur createComment:', error);
@@ -66,11 +90,21 @@ export const createComment = async (videoId, content) => {
  */
 export const updateComment = async (commentId, content) => {
   try {
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Ajouter le token d'authentification si disponible
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify({ content }),
     });
 
@@ -94,11 +128,21 @@ export const updateComment = async (commentId, content) => {
  */
 export const deleteComment = async (commentId) => {
   try {
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Ajouter le token d'authentification si disponible
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
     });
 
     if (!response.ok) {

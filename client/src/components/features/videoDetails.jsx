@@ -100,7 +100,8 @@ const VideoDetails = () => {
 
     try {
       // Créer le commentaire via l'API
-      await createComment(id, newComment.trim());
+      const result = await createComment(id, newComment.trim());
+      console.log('Commentaire créé avec succès:', result);
       
       // Réinitialiser le champ de saisie
       setNewComment('');
@@ -109,8 +110,9 @@ const VideoDetails = () => {
       await loadComments();
     } catch (err) {
       console.error('Erreur lors de l\'ajout du commentaire:', err);
-      // Afficher un message d'erreur à l'utilisateur
-      alert('Erreur lors de l\'ajout du commentaire. Veuillez réessayer.');
+      // Afficher un message d'erreur à l'utilisateur avec plus de détails
+      const errorMessage = err.message || 'Erreur lors de l\'ajout du commentaire. Veuillez réessayer.';
+      alert(errorMessage);
     }
   };
 

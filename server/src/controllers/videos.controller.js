@@ -118,7 +118,6 @@ export const getVideoByIdController = async (req, res) => {
 // controller pour modifier une vidéo
 export const updateVideoController = async (req, res) => {
     try {
-
         const user = req.user;
         if (!user) {
             return res.status(401).json({
@@ -129,14 +128,9 @@ export const updateVideoController = async (req, res) => {
         // récupérer l'id de la vidéo dans les paramètres
         const { id } = req.params;
 
-        // vérifier que la vidéo existe
+        // Le middleware checkOwnershipOrRole a déjà vérifié les permissions
+        // Vérifier que la vidéo existe
         const existingVideo = await getVideoById(id);
-
-        if (existingVideo.user_id !== user.id) {
-            return res.status(403).json({
-                message: "Vous n'avez pas les permissions pour modifier cette vidéo"
-            });
-        }
 
         // variable pour stocker les données à mettre à jour
         const updateData = {};
@@ -177,7 +171,6 @@ export const updateVideoController = async (req, res) => {
 // controller pour supprimer une vidéo
 export const deleteVideoController = async (req, res) => {
     try {
-
         const user = req.user;
 
         if (!user) {
@@ -185,18 +178,12 @@ export const deleteVideoController = async (req, res) => {
                 message: 'Utilisateur non authentifié'
             });
         }
+        
         // récupérer l'id de la vidéo dans les paramètres
         const { id } = req.params;
 
-        // supprimer la vidéo de la base de données (cette fonction vérifie aussi l'existence)
-        const existingVideo = await getVideoById(id);
-
-        if (existingVideo.user_id !== user.id) {
-            return res.status(403).json({
-                message: "Vous n'avez pas les permissions pour supprimer cette vidéo"
-            });
-        }
-
+        // Le middleware checkOwnershipOrRole a déjà vérifié les permissions
+        // On peut donc directement supprimer la vidéo
         const deletedVideo = await deleteVideo(id);
 
         // supprimer le fichier vidéo du système de fichiers s'il existe

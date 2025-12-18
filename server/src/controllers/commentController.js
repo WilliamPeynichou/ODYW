@@ -28,6 +28,12 @@ export const getComments = async (req, res) => {
 
 // Ajouter un nouveau commentaire
 export const addComment = async (req, res) => {
+    const user = req.user;
+    if (!user) {
+        return res.status(401).json({
+            error: 'Utilisateur non authentifié'
+        });
+    }
 
     const videoId = req.params.videoId;
     const { content } = req.body;
@@ -45,12 +51,12 @@ export const addComment = async (req, res) => {
     }
 
     try {
-        const id = await commentService.createComment(Number(videoId), content.trim());
+        const id = await commentService.createComment(Number(videoId), content.trim(), user.id);
         res.status(201).json({
             message: messages.commentAdded, id
         });
     } catch (error) {
-        console.error(error);
+        console.error('Erreur dans addComment:', error);
         res.status(500).json({
             error: messages.serverError
         });
