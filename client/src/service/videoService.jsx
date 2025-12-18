@@ -1,5 +1,7 @@
 // Service pour interagir avec l'API de vidéos
 
+import { getAuthToken } from '../utils/authUtils';
+
 const API_BASE_URL = 'http://localhost:3000/api/videos';
 
 /**
@@ -16,8 +18,18 @@ export const uploadVideo = async (formData) => {
     const formDataEntries = formData ? Array.from(formData.entries()).map(([k,v])=>({key:k,value:v instanceof File?`File:${v.name}`:v})) : [];
     fetch('http://127.0.0.1:7242/ingest/6211406b-4427-4383-9516-068226dbe68b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'videoService.jsx:13',message:'before fetch uploadVideo',data:{url:API_BASE_URL,formDataEntries},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    const headers = {};
+    
+    // Ajouter le token d'authentification si disponible
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(API_BASE_URL, {
       method: 'POST',
+      headers: headers,
       body: formData,
       // Ne pas définir Content-Type, le navigateur le fera automatiquement avec FormData
     });
@@ -168,13 +180,20 @@ export const updateVideo = async (id, data) => {
     const dataPreview = isFormData ? Array.from(data.entries()).map(([k,v])=>({key:k,value:v instanceof File?`File:${v.name}`:v})) : data;
     fetch('http://127.0.0.1:7242/ingest/6211406b-4427-4383-9516-068226dbe68b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'videoService.jsx:95',message:'before fetch updateVideo',data:{url:fullUrl,dataPreview},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    
     const options = {
       method: 'PUT',
       body: isFormData ? data : JSON.stringify(data),
       headers: isFormData 
-        ? {} // Le navigateur définira Content-Type automatiquement pour FormData
+        ? {
+            // Le navigateur définira Content-Type automatiquement pour FormData
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          }
         : {
             'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
           },
     };
 
@@ -221,10 +240,14 @@ export const deleteVideo = async (id) => {
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/6211406b-4427-4383-9516-068226dbe68b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'videoService.jsx:128',message:'before fetch deleteVideo',data:{url:fullUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'})}).catch(()=>{});
     // #endregion
+    // Récupérer le token d'authentification
+    const token = getAuthToken();
+    
     const response = await fetch(fullUrl, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
     });
 
