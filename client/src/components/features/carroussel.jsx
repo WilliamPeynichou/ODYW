@@ -119,16 +119,16 @@ const Carrousel = ({ videos = [] }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-96 bg-gray-100 rounded-lg">
-        <p className="text-gray-500">Chargement des vidéos...</p>
+      <div className="flex items-center justify-center w-full h-48 sm:h-64 md:h-80 lg:h-96 bg-gray-100 rounded-lg">
+        <p className="text-gray-500 text-sm sm:text-base">Chargement des vidéos...</p>
       </div>
     );
   }
 
   if (!shuffledVideos || shuffledVideos.length === 0) {
     return (
-      <div className="flex items-center justify-center w-full h-96 bg-gray-100 rounded-lg">
-        <p className="text-gray-500">Aucune vidéo disponible</p>
+      <div className="flex items-center justify-center w-full h-48 sm:h-64 md:h-80 lg:h-96 bg-gray-100 rounded-lg">
+        <p className="text-gray-500 text-sm sm:text-base">Aucune vidéo disponible</p>
       </div>
     );
   }
@@ -138,13 +138,13 @@ const Carrousel = ({ videos = [] }) => {
   const nextVideo = shuffledVideos[getNextIndex()];
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4">
+    <div className="relative w-full max-w-7xl mx-auto px-2 sm:px-4">
       {/* Conteneur principal avec les trois vidéos */}
-      <div className="relative flex items-center gap-4">
-        {/* Vidéo précédente (transparente) */}
+      <div className="relative flex items-center gap-2 sm:gap-4">
+        {/* Vidéo précédente (transparente) - cachée sur mobile */}
         {shuffledVideos.length > 1 && (
           <div 
-            className="flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
+            className="hidden md:block flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
             onClick={goToPrevious}
             style={{ aspectRatio: '16/9' }}
             onMouseEnter={() => {
@@ -192,12 +192,12 @@ const Carrousel = ({ videos = [] }) => {
 
             {/* Informations de la vidéo */}
             {currentVideo?.title && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <h3 className="text-white font-semibold text-lg">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 sm:p-4">
+                <h3 className="text-white font-semibold text-sm sm:text-base md:text-lg break-words">
                   {currentVideo.title}
                 </h3>
                 {currentVideo?.description && (
-                  <p className="text-white/80 text-sm mt-1">
+                  <p className="text-white/80 text-xs sm:text-sm mt-1 line-clamp-2">
                     {currentVideo.description}
                   </p>
                 )}
@@ -209,12 +209,12 @@ const Carrousel = ({ videos = [] }) => {
           {shuffledVideos.length > 1 && (
             <button
               onClick={goToPrevious}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
+              className="absolute left-2 sm:left-0 top-1/2 -translate-y-1/2 sm:-translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
               aria-label="Vidéo précédente"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
+                className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -233,12 +233,12 @@ const Carrousel = ({ videos = [] }) => {
           {shuffledVideos.length > 1 && (
             <button
               onClick={goToNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
+              className="absolute right-2 sm:right-0 top-1/2 -translate-y-1/2 sm:translate-x-12 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-4 rounded-full shadow-lg transition-all z-10 hover:scale-110"
               aria-label="Vidéo suivante"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
+                className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -254,10 +254,10 @@ const Carrousel = ({ videos = [] }) => {
           )}
         </div>
 
-        {/* Vidéo suivante (transparente) */}
+        {/* Vidéo suivante (transparente) - cachée sur mobile */}
         {shuffledVideos.length > 1 && (
           <div 
-            className="flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
+            className="hidden md:block flex-shrink-0 w-1/4 opacity-40 hover:opacity-60 transition-opacity cursor-pointer"
             onClick={goToNext}
             style={{ aspectRatio: '16/9' }}
             onMouseEnter={() => {

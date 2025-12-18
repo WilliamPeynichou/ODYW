@@ -414,18 +414,61 @@
     border-radius: 8px;
   }
 
+  .notification header {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
   .notification header .avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .notification header h2 {
+    font-size: 13px;
+  }
+
+  .notification header .timestamp {
+    font-size: 11px;
   }
 
   .notification .content {
-    padding-left: 48px;
+    padding-left: 0;
+    margin-top: 8px;
+  }
+
+  .notification .content .message {
+    font-size: 13px;
   }
 
   .comment-actions {
     opacity: 1; /* Toujours visible sur mobile */
+    gap: 2px;
+  }
+
+  .comment-action-btn {
+    padding: 4px 6px;
+  }
+
+  .comment-action-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .comment-edit-form textarea {
+    font-size: 13px;
+    min-height: 50px;
+    padding: 6px 10px;
+  }
+
+  .comment-edit-actions {
+    gap: 6px;
+  }
+
+  .comment-edit-btn {
+    padding: 5px 12px;
+    font-size: 12px;
   }
 }
 

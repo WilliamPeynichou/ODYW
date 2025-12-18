@@ -81,9 +81,9 @@ const VideoCard = ({ video }) => {
       </div>
 
       {/* Contenu de la carte */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {/* Titre */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-2 break-words">
           {video.title || video.name || 'Sans titre'}
         </h3>
 
@@ -228,11 +228,11 @@ const ProductList = () => {
   const negativeVideoHeaderRef = useRef(null);
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-8" id="videos">
-      <div className="mb-8 relative">
+    <section className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8" id="videos">
+      <div className="mb-6 sm:mb-8 relative">
         {/* Vidéo negative à la place du titre */}
         <div 
-          className="relative w-full h-32 md:h-48 lg:h-64 overflow-hidden rounded-lg"
+          className="relative w-full h-24 sm:h-32 md:h-48 lg:h-64 overflow-hidden rounded-lg"
           onMouseEnter={() => {
             if (negativeVideoHeaderRef.current) {
               negativeVideoHeaderRef.current.play();
@@ -254,26 +254,26 @@ const ProductList = () => {
             playsInline
           />
         </div>
-        <p className="text-gray-600 mt-4">
+        <p className="text-gray-600 mt-3 sm:mt-4 text-sm sm:text-base px-2">
           Découvrez notre sélection de vidéos
         </p>
       </div>
 
       {/* État de chargement */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">Chargement des vidéos...</p>
+        <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">Chargement des vidéos...</p>
         </div>
       )}
 
       {/* Message d'erreur */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <p className="text-red-800 text-sm sm:text-base">{error}</p>
           <button
             onClick={loadVideos}
-            className="mt-2 text-red-600 hover:text-red-800 underline"
+            className="mt-2 text-red-600 hover:text-red-800 underline text-sm sm:text-base"
           >
             Réessayer
           </button>
@@ -295,7 +295,7 @@ const ProductList = () => {
               />
 
               {/* Compteur de résultats */}
-              <div className="mb-4 text-sm text-gray-600">
+              <div className="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600 px-2">
                 {filteredVideos.length === videos.length ? (
                   <span>{videos.length} vidéo{videos.length > 1 ? 's' : ''} disponible{videos.length > 1 ? 's' : ''}</span>
                 ) : (
@@ -307,7 +307,7 @@ const ProductList = () => {
 
               {/* Grille des vidéos filtrées */}
               {filteredVideos.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {filteredVideos.map((video) => (
                     <VideoCard
                       key={video.id}
@@ -316,22 +316,22 @@ const ProductList = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <p className="text-gray-500 text-lg mb-2">
+                <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg px-4">
+                  <p className="text-gray-500 text-base sm:text-lg mb-2">
                     Aucune vidéo ne correspond aux filtres sélectionnés
                   </p>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-400 text-xs sm:text-sm">
                     Essayez de modifier vos critères de recherche
                   </p>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg mb-4">
+            <div className="text-center py-8 sm:py-12 px-4">
+              <p className="text-gray-500 text-base sm:text-lg mb-3 sm:mb-4">
                 Aucune vidéo disponible pour le moment
               </p>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs sm:text-sm">
                 Les vidéos seront chargées depuis l'API backend
               </p>
             </div>

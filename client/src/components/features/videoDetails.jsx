@@ -6,6 +6,7 @@ import { CommentList } from './Comment';
 import { getVideoById, deleteVideo } from '../../service/videoService';
 import { getCommentsByVideoId, createComment, updateComment, deleteComment } from '../../service/commentService';
 import Rating from './Rating';
+import { getCurrentUser, isAdmin } from '../../utils/authUtils';
 
 const VideoDetails = () => {
   const { id } = useParams();
@@ -16,9 +17,11 @@ const VideoDetails = () => {
   const [error, setError] = useState(null);
   const [rating, setRating] = useState(0);
   const [newComment, setNewComment] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Charger les détails de la vidéo
   useEffect(() => {
+    setCurrentUser(getCurrentUser());
     loadVideoDetails();
     loadComments();
   }, [id]);
@@ -41,7 +44,8 @@ const VideoDetails = () => {
         likes: 0, // Pas de système de likes pour l'instant
         views: 0, // Pas de système de vues pour l'instant
         createdAt: videoData.created_at || videoData.createdAt,
-        author: 'Auteur', // Pas d'auteur pour l'instant
+        author: videoData.user_username || 'Auteur',
+        userId: videoData.user_id || null,
         category: videoData.theme_name || null,
         duration: videoData.duration,
         size_mb: videoData.size_mb,
@@ -70,6 +74,7 @@ const VideoDetails = () => {
         content: comment.content,
         likes: comment.likes || 0, // Si pas de likes dans la BDD, mettre 0
         createdAt: comment.created_at || comment.createdAt,
+        userId: comment.user_id || null,
       }));
 
       setComments(mappedComments);
@@ -184,15 +189,15 @@ const VideoDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Bouton retour */}
         <button
           onClick={() => navigate('/')}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          className="mb-4 sm:mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm sm:text-base"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
+            className="h-4 w-4 sm:h-5 sm:w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -211,7 +216,7 @@ const VideoDetails = () => {
           {/* Colonne principale - Vidéo et détails */}
           <div>
             {/* Lecteur vidéo */}
-            <div className="bg-black rounded-lg overflow-hidden mb-6">
+            <div className="bg-black rounded-lg overflow-hidden mb-4 sm:mb-6">
               <video
                 className="w-full"
                 style={{ aspectRatio: '16/9' }}
@@ -225,23 +230,23 @@ const VideoDetails = () => {
             </div>
 
             {/* Informations de la vidéo */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">
                 {video.title}
               </h1>
 
-              <div className="flex items-center gap-6 mb-4 text-sm text-gray-600">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-4 text-xs sm:text-sm text-gray-600">
                 <span>{video.views || 0} vues</span>
                 <span>{new Date(video.createdAt).toLocaleDateString('fr-FR')}</span>
                 {video.category && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs sm:text-sm">
                     {video.category}
                   </span>
                 )}
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex flex-wrap items-center gap-4 mb-4">
                 {/* Système de notation */}
                 <Rating 
                   videoId={id} 
@@ -249,88 +254,93 @@ const VideoDetails = () => {
                   onRatingChange={handleRatingChange}
                 />
                 
-                {/* Bouton Modifier */}
-                <button
-                  onClick={() => navigate(`/video/${id}/edit`)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  <span>Modifier</span>
-                </button>
+                {/* Boutons Modifier/Supprimer - seulement si propriétaire ou admin */}
+                {(currentUser && (video.userId === currentUser.id || isAdmin())) && (
+                  <>
+                    {/* Bouton Modifier */}
+                    <button
+                      onClick={() => navigate(`/video/${id}/edit`)}
+                      className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">Modifier</span>
+                    </button>
 
-                {/* Bouton Supprimer */}
-                <button
-                  onClick={handleDeleteVideo}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  <span>Supprimer</span>
-                </button>
+                    {/* Bouton Supprimer */}
+                    <button
+                      onClick={handleDeleteVideo}
+                      className="flex items-center gap-2 px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">Supprimer</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Description */}
               <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                    <span className="text-gray-600 font-semibold text-xs sm:text-base">
                       {video.author?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{video.author || 'Auteur'}</p>
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{video.author || 'Auteur'}</p>
                   </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line text-sm sm:text-base break-words">
                   {video.description}
                 </p>
               </div>
             </div>
 
             {/* Section commentaires */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
                 Commentaires ({comments.length})
               </h2>
 
               {/* Formulaire d'ajout de commentaire */}
-              <form onSubmit={handleSubmitComment} className="mb-6">
-                <div className="flex gap-3">
+              <form onSubmit={handleSubmitComment} className="mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Ajouter un commentaire..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base whitespace-nowrap"
                   >
                     Publier
                   </button>
@@ -343,9 +353,10 @@ const VideoDetails = () => {
                   comments={comments} 
                   onUpdateComment={handleUpdateComment}
                   onDeleteComment={handleDeleteComment}
+                  currentUser={currentUser}
                 />
               ) : (
-                <p className="text-gray-500 text-center py-8">
+                <p className="text-gray-500 text-center py-6 sm:py-8 text-sm sm:text-base">
                   Aucun commentaire pour le moment. Soyez le premier à commenter !
                 </p>
               )}
