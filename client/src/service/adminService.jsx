@@ -145,6 +145,33 @@ export const updateUserPermissions = async (userId, permissions) => {
 };
 
 /**
+ * Met à jour le rôle d'un utilisateur (seul le superAdmin peut faire cela)
+ * @param {string|number} userId - ID de l'utilisateur
+ * @param {string} role - Le nouveau rôle ('user', 'admin', 'superAdmin')
+ * @returns {Promise<Object>} Promise qui résout avec l'utilisateur mis à jour
+ */
+export const updateUserRole = async (userId, role) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ role }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || errorData.error || 'Erreur lors de la mise à jour du rôle');
+    }
+
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    console.error('Erreur updateUserRole:', error);
+    throw error;
+  }
+};
+
+/**
  * Récupère toutes les vidéos (pour gestion admin)
  * @returns {Promise<Array>} Promise qui résout avec un tableau de vidéos
  */
@@ -301,6 +328,7 @@ export default {
   updateUser,
   deleteUser,
   updateUserPermissions,
+  updateUserRole,
   getAllVideosAdmin,
   deleteVideoAdmin,
   getAllThemesAdmin,
