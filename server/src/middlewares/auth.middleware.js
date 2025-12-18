@@ -7,11 +7,18 @@ export async function authenticate(req, res, next){
     try {
         // récupération du token dans l'en-tête Authorization
         const authorization = req.headers.authorization;
+
+        if(!authorization){
+            return res.status(401).json({
+                message: 'Token non fourni'
+            });
+        }
+        
         const token = authorization.replace('Bearer ', '');
         // vérification du token
         if(!token){
             return res.status(401).json({
-                message: 'Token non fourni'
+                message: 'petit bug'
             });
         }
         // dans le cas où le token est invalide
