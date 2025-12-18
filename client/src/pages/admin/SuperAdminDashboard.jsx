@@ -5,22 +5,16 @@ import Footer from '../../layout/footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import UserManagement from './components/UserManagement';
 import ContentManagement from './components/ContentManagement';
-import { getCurrentUser, logout } from '../../utils/authUtils';
+import { getCurrentUser, isSuperAdmin, logout } from '../../utils/authUtils';
 
-const AdminDashboard = () => {
+const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('users');
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const user = getCurrentUser();
-    // Rediriger les superAdmin vers leur propre dashboard
-    if (user && user.role_id === 3) {
-      navigate('/superadmin');
-      return;
-    }
-    // Seuls les admins (role_id === 2) peuvent accéder ici
-    if (!user || user.role_id !== 2) {
+    if (!user || user.role_id !== 3) {
       navigate('/');
       return;
     }
@@ -50,10 +44,10 @@ const AdminDashboard = () => {
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Panneau d'administration</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">Panneau SuperAdmin</h1>
                   <p className="text-gray-600 mt-2">
                     Connecté en tant que <span className="font-semibold">{currentUser.username}</span>{' '}
-                    (Admin)
+                    (SuperAdmin)
                   </p>
                 </div>
                 <button
@@ -65,10 +59,10 @@ const AdminDashboard = () => {
               </div>
 
               {/* Indicateur de rôle */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <div className="flex items-center">
                   <svg
-                    className="h-5 w-5 text-blue-600 mr-2"
+                    className="h-5 w-5 text-purple-600 mr-2"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -77,11 +71,11 @@ const AdminDashboard = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                     />
                   </svg>
-                  <span className="text-blue-800 font-medium">
-                    Mode Admin : Accès à la gestion des utilisateurs (sauf SuperAdmin) et du contenu
+                  <span className="text-purple-800 font-medium">
+                    Mode SuperAdmin : Accès complet à toutes les fonctionnalités
                   </span>
                 </div>
               </div>
@@ -95,7 +89,7 @@ const AdminDashboard = () => {
                     onClick={() => setActiveSection('users')}
                     className={`py-4 px-6 border-b-2 font-medium text-sm ${
                       activeSection === 'users'
-                        ? 'border-blue-500 text-blue-600'
+                        ? 'border-purple-500 text-purple-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -105,7 +99,7 @@ const AdminDashboard = () => {
                     onClick={() => setActiveSection('content')}
                     className={`py-4 px-6 border-b-2 font-medium text-sm ${
                       activeSection === 'content'
-                        ? 'border-blue-500 text-blue-600'
+                        ? 'border-purple-500 text-purple-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -117,7 +111,7 @@ const AdminDashboard = () => {
 
             {/* Contenu selon la section active */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              {activeSection === 'users' && <UserManagement isSuperAdmin={false} />}
+              {activeSection === 'users' && <UserManagement isSuperAdmin={true} />}
               {activeSection === 'content' && <ContentManagement />}
             </div>
           </div>
@@ -128,5 +122,5 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default SuperAdminDashboard;
 

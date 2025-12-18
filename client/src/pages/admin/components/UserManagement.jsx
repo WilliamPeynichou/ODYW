@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isSuperAdmin } from '../../../utils/authUtils';
 import {
   getAllUsers,
   updateUser,
@@ -9,7 +8,7 @@ import {
   updateUserRole,
 } from '../../../service/adminService';
 
-const UserManagement = () => {
+const UserManagement = ({ isSuperAdmin = false }) => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +23,7 @@ const UserManagement = () => {
     canManageThemes: false,
   });
 
-  const isSuperAdminUser = isSuperAdmin();
+  const isSuperAdminUser = isSuperAdmin;
 
   // Charger les utilisateurs
   useEffect(() => {
@@ -35,23 +34,18 @@ const UserManagement = () => {
     try {
       setLoading(true);
       setError('');
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne
-      // const usersData = await getAllUsers();
       
-      // Simulation en attendant l'endpoint
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const usersData = [
-        { id: 1, username: 'admin1', email: 'admin1@test.com', role: 'admin', createdAt: '2024-01-01' },
-        { id: 2, username: 'user1', email: 'user1@test.com', role: 'user', createdAt: '2024-01-02' },
-      ];
+      // Récupérer les utilisateurs depuis l'API
+      const usersData = await getAllUsers();
       
-      // Filtrer les superAdmin si l'utilisateur n'est pas superAdmin
+      // Filtrer les utilisateurs avec role_id === 3 si l'utilisateur n'est pas superAdmin
       const filteredUsers = isSuperAdminUser
         ? usersData
-        : usersData.filter(user => user.role !== 'superAdmin');
+        : usersData.filter(user => user.role_id !== 3);
       
       setUsers(filteredUsers);
     } catch (err) {
+      console.error('Erreur lors du chargement des utilisateurs:', err);
       setError(err.message || 'Erreur lors du chargement des utilisateurs');
     } finally {
       setLoading(false);
@@ -59,6 +53,11 @@ const UserManagement = () => {
   };
 
   const handleEditUser = (user) => {
+    // Empêcher les admins de modifier les superAdmins
+    if (!isSuperAdminUser && user.role_id === 3) {
+      alert('Vous n\'avez pas la permission de modifier les utilisateurs SuperAdmin');
+      return;
+    }
     setEditingUser({ ...user });
   };
 
@@ -71,14 +70,18 @@ const UserManagement = () => {
       
       // Si le rôle a changé et que l'utilisateur est superAdmin, utiliser updateUserRole
       const originalUser = users.find(u => u.id === editingUser.id);
-      if (originalUser && originalUser.role !== editingUser.role && isSuperAdminUser) {
-        await updateUserRole(editingUser.id, editingUser.role);
+      if (originalUser && originalUser.role_id !== editingUser.role_id && isSuperAdminUser) {
+        // Convertir le role_id en format attendu par l'API
+        await updateUserRole(editingUser.id, editingUser.role_id);
+        // Recharger la liste des utilisateurs après modification du rôle
+        await loadUsers();
       } else {
         // Sinon, utiliser updateUser normal
         await updateUser(editingUser.id, updatedUser);
+        // Mettre à jour localement
+        setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
       }
       
-      setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
       setEditingUser(null);
       alert('Utilisateur mis à jour avec succès');
     } catch (err) {
@@ -87,19 +90,24 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    const userToDelete = users.find(u => u.id === userId);
+    
+    // Empêcher les admins de supprimer les superAdmins
+    if (!isSuperAdminUser && userToDelete && userToDelete.role_id === 3) {
+      alert('Vous n\'avez pas la permission de supprimer les utilisateurs SuperAdmin');
+      return;
+    }
+
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
       return;
     }
 
     try {
       setError('');
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne
-      // await deleteUser(userId);
+      await deleteUser(userId);
       
-      // Simulation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setUsers(users.filter(u => u.id !== userId));
+      // Recharger la liste des utilisateurs après suppression
+      await loadUsers();
       alert('Utilisateur supprimé avec succès');
     } catch (err) {
       setError(err.message || 'Erreur lors de la suppression');
@@ -107,6 +115,11 @@ const UserManagement = () => {
   };
 
   const handleOpenPermissionsModal = (user) => {
+    // Seul le superAdmin peut gérer les permissions
+    if (!isSuperAdminUser) {
+      alert('Vous n\'avez pas la permission de gérer les permissions');
+      return;
+    }
     setSelectedUser(user);
     setPermissions({
       canManageUsers: user.permissions?.canManageUsers || false,
@@ -122,17 +135,10 @@ const UserManagement = () => {
 
     try {
       setError('');
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne
-      // await updateUserPermissions(selectedUser.id, permissions);
+      await updateUserPermissions(selectedUser.id, permissions);
       
-      // Simulation
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setUsers(users.map(u =>
-        u.id === selectedUser.id
-          ? { ...u, permissions: { ...permissions } }
-          : u
-      ));
+      // Recharger la liste des utilisateurs après modification des permissions
+      await loadUsers();
       setShowPermissionsModal(false);
       setSelectedUser(null);
       alert('Permissions mises à jour avec succès');
@@ -141,14 +147,27 @@ const UserManagement = () => {
     }
   };
 
-  const getRoleBadgeColor = (role) => {
-    switch (role) {
-      case 'superAdmin':
+  const getRoleBadgeColor = (roleId) => {
+    switch (roleId) {
+      case 3:
         return 'bg-purple-100 text-purple-800';
-      case 'admin':
+      case 2:
         return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRoleName = (roleId) => {
+    switch (roleId) {
+      case 3:
+        return 'SuperAdmin';
+      case 2:
+        return 'Admin';
+      case 1:
+        return 'User';
+      default:
+        return 'User';
     }
   };
 
@@ -166,7 +185,7 @@ const UserManagement = () => {
         <h2 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h2>
         {!isSuperAdminUser && (
           <p className="text-sm text-gray-500">
-            Les superAdmin ne sont pas visibles dans cette liste
+            Les utilisateurs SuperAdmin (role_id: 3) ne sont pas visibles dans cette liste
           </p>
         )}
       </div>
@@ -239,28 +258,32 @@ const UserManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {editingUser?.id === user.id && isSuperAdminUser ? (
                       <select
-                        value={editingUser.role}
+                        value={editingUser.role_id}
                         onChange={(e) =>
-                          setEditingUser({ ...editingUser, role: e.target.value })
+                          setEditingUser({ ...editingUser, role_id: Number(e.target.value) })
                         }
                         className="px-2 py-1 border rounded"
                       >
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                        <option value="superAdmin">SuperAdmin</option>
+                        <option value={1}>User</option>
+                        <option value={2}>Admin</option>
+                        <option value={3}>SuperAdmin</option>
                       </select>
                     ) : (
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(
-                          user.role
+                          user.role_id || user.role
                         )}`}
                       >
-                        {user.role}
+                        {getRoleName(user.role_id || (user.role === 'superAdmin' ? 3 : user.role === 'admin' ? 2 : 1))}
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                    {user.created_at 
+                      ? new Date(user.created_at).toLocaleDateString('fr-FR')
+                      : user.createdAt 
+                        ? new Date(user.createdAt).toLocaleDateString('fr-FR')
+                        : 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     {editingUser?.id === user.id ? (
@@ -280,13 +303,15 @@ const UserManagement = () => {
                       </div>
                     ) : (
                       <div className="flex justify-end gap-2">
-                        {(user.role === 'admin' || user.role === 'superAdmin') && (
+                        {(user.role_id === 2 || user.role_id === 3) && (
                           <button
-                            onClick={() => navigate('/admin')}
-                            className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-xs"
+                            onClick={() => navigate(user.role_id === 3 ? '/superadmin' : '/admin')}
+                            className={`px-3 py-1 text-white rounded hover:opacity-90 transition-colors text-xs ${
+                              user.role_id === 3 ? 'bg-purple-600' : 'bg-blue-600'
+                            }`}
                             title="Accéder au panneau d'administration"
                           >
-                            Admin
+                            {user.role_id === 3 ? 'SuperAdmin' : 'Admin'}
                           </button>
                         )}
                         <button

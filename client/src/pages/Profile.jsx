@@ -23,7 +23,17 @@ const Profile = () => {
 
         // Charger les données du profil depuis l'API
         const profileData = await getProfile();
-        setUser(profileData.user || profileData);
+        const userData = profileData.user || profileData;
+        setUser(userData);
+        
+        // Mettre à jour l'utilisateur dans le localStorage avec le role_id si disponible
+        if (userData && userData.role_id) {
+          const updatedUser = {
+            ...localUser,
+            role_id: userData.role_id
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
       } catch (err) {
         setError(err.message || 'Erreur lors du chargement du profil');
         // Si le token est invalide, rediriger vers la page de connexion
