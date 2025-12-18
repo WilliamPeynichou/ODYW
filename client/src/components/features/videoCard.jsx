@@ -107,6 +107,7 @@ const ProductList = () => {
   const [error, setError] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(null);
   const [selectedDateFilter, setSelectedDateFilter] = useState('all');
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   // Fonction pour charger les vidéos depuis l'API
   const loadVideos = async () => {
@@ -152,6 +153,15 @@ const ProductList = () => {
   // Fonction de filtrage des vidéos
   const filteredVideos = useMemo(() => {
     let filtered = [...videos];
+
+    // Filtre par mot-clé (recherche dans les titres)
+    if (searchKeyword && searchKeyword.trim() !== '') {
+      const keyword = searchKeyword.toLowerCase().trim();
+      filtered = filtered.filter(video => {
+        const title = (video.title || video.name || '').toLowerCase();
+        return title.includes(keyword);
+      });
+    }
 
     // Filtre par thème
     if (selectedTheme) {
@@ -206,12 +216,13 @@ const ProductList = () => {
     }
 
     return filtered;
-  }, [videos, selectedTheme, selectedDateFilter]);
+  }, [videos, selectedTheme, selectedDateFilter, searchKeyword]);
 
   // Gérer les changements de filtres
-  const handleFilterChange = ({ theme, date }) => {
+  const handleFilterChange = ({ theme, date, searchKeyword: keyword }) => {
     setSelectedTheme(theme);
     setSelectedDateFilter(date);
+    setSearchKeyword(keyword || '');
   };
 
   const negativeVideoHeaderRef = useRef(null);
@@ -280,6 +291,7 @@ const ProductList = () => {
                 onFilterChange={handleFilterChange}
                 selectedTheme={selectedTheme}
                 selectedDateFilter={selectedDateFilter}
+                searchKeyword={searchKeyword}
               />
 
               {/* Compteur de résultats */}
