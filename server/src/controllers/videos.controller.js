@@ -9,6 +9,14 @@ export const createVideoController = async (req, res) => {
 
     // try and catch 
     try {
+        // verif si l'utilisateur est authentifié
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                message: 'Utilisateur non authentifié'
+            });
+        }
+
         // variable realDuration pour avoir la durée réelle de la vidéo
         // readuration = attend la promise de la fonction getvideoduration
         // et en param on met le chemin du fichier dla requete
@@ -42,6 +50,7 @@ export const createVideoController = async (req, res) => {
             video_url: req.file.path,
             duration: realDuration, 
             size_mb: parseFloat(req.file.size / 1024 / 1024),
+            user_id: user.id,
         }
 
         // video attend la promise de la fonction createVideo avec videoData en param
@@ -109,59 +118,28 @@ export const getVideoByIdController = async (req, res) => {
 // controller pour modifier une vidéo
 export const updateVideoController = async (req, res) => {
     try {
+
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                message: 'Utilisateur non authentifié'
+            });
+        }
+
         // récupérer l'id de la vidéo dans les paramètres
         const { id } = req.params;
 
         // vérifier que la vidéo existe
         const existingVideo = await getVideoById(id);
 
+        if (existingVideo.user_id !== user.id) {
+            return res.status(403).json({
+                message: "Vous n'avez pas les permissions pour modifier cette vidéo"
+            });
+        }
+
         // variable pour stocker les données à mettre à jour
         const updateData = {};
-
-        // si un nouveau fichier est fourni
-        if (req.file) {
-            // variable realDuration pour avoir la durée réelle de la nouvelle vidéo
-            let realDuration;
-            try {
-                // realDuration = attend la promise de la fonction getVideoDuration
-                // et en param on met le chemin du fichier de la requête
-                realDuration = await getVideoDuration(req.file.path);
-            } catch (error) {
-                // si erreur, supprimer le nouveau fichier et renvoyer une erreur
-                fs.unlinkSync(req.file.path);
-                return res.status(400).json({
-                    message: 'Erreur lors de la lecture de la vidéo',
-                    error: error.message
-                });
-            }
-
-            // valider que la durée est entre 10 et 60 secondes
-            if (realDuration < 10) {
-                // unlinkSync pour supprimer le fichier
-                fs.unlinkSync(req.file.path);
-                return res.status(400).json({
-                    message: `La durée de la vidéo (${realDuration}s) est trop courte. Minimum: 10 secondes`
-                });
-            }
-
-            if (realDuration > 60) {
-                // unlinkSync pour supprimer le fichier
-                fs.unlinkSync(req.file.path);
-                return res.status(400).json({
-                    message: `La durée de la vidéo (${realDuration}s) est trop longue. Maximum: 60 secondes`
-                });
-            }
-
-            // supprimer l'ancien fichier vidéo s'il existe
-            if (existingVideo.video_url && fs.existsSync(existingVideo.video_url)) {
-                fs.unlinkSync(existingVideo.video_url);
-            }
-
-            // toujours dans la condition si request fichier, on ajoute les nouvelles données de la vidéo
-            updateData.video_url = req.file.path;
-            updateData.duration = realDuration;
-            updateData.size_mb = parseFloat(req.file.size / 1024 / 1024);
-        }
 
         // si title est fourni dans le body, l'ajouter aux données à mettre à jour
         if (req.body.title !== undefined) {
@@ -181,11 +159,6 @@ export const updateVideoController = async (req, res) => {
             video: updatedVideo
         });
     } catch (error) {
-        // si erreur après l'upload d'un nouveau fichier, supprimer le fichier
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-
         // si l'erreur est "video non trouvée", retourner 404
         if (error.message === 'video non trouvée') {
             return res.status(404).json({
@@ -204,10 +177,26 @@ export const updateVideoController = async (req, res) => {
 // controller pour supprimer une vidéo
 export const deleteVideoController = async (req, res) => {
     try {
+
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({
+                message: 'Utilisateur non authentifié'
+            });
+        }
         // récupérer l'id de la vidéo dans les paramètres
         const { id } = req.params;
 
         // supprimer la vidéo de la base de données (cette fonction vérifie aussi l'existence)
+        const existingVideo = await getVideoById(id);
+
+        if (existingVideo.user_id !== user.id) {
+            return res.status(403).json({
+                message: "Vous n'avez pas les permissions pour supprimer cette vidéo"
+            });
+        }
+
         const deletedVideo = await deleteVideo(id);
 
         // supprimer le fichier vidéo du système de fichiers s'il existe
