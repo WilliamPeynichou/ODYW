@@ -8,12 +8,14 @@ import authRoutes from './routes/auth.route.js';
 import commentRoutes from './routes/comments.route.js'
 import videosRoutes from './routes/videos.route.js';
 import themesRoutes from './routes/themes.route.js';
+import adminRoutes from './routes/admin.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
 const app = express();
+
 
 // config de l'app
 // autorise les requetes externes
@@ -37,6 +39,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/videos', videosRoutes);
 app.use('/api/themes', themesRoutes);
 
+app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err);
