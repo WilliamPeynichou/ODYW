@@ -31,8 +31,16 @@ export const uploadVideo = async (formData) => {
       const responseText = await response.clone().text();
       fetch('http://127.0.0.1:7242/ingest/6211406b-4427-4383-9516-068226dbe68b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'videoService.jsx:24',message:'response not ok - before json parse',data:{status:response.status,responseText:responseText.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
       // #endregion
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Erreur lors de l\'upload de la vidéo');
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: `Erreur HTTP ${response.status}` };
+      }
+      // Le backend retourne { message: '...', error: 'détails' }, on préfère afficher les détails
+      const errorMessage = errorData.error || errorData.message || 'Erreur lors de l\'upload de la vidéo';
+      console.error('Erreur détaillée du serveur:', errorData);
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

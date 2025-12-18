@@ -77,7 +77,7 @@ const VideoForm = ({ onSubmit, isSubmitting, initialData = null, isUpdate = fals
       theme: theme.trim(),
       file: file,
       createdAt: new Date().toISOString(),
-      size: file.size // Taille du fichier en bytes
+      size: file ? file.size : 0 // Taille du fichier en bytes
     };
 
     onSubmit(videoData);
