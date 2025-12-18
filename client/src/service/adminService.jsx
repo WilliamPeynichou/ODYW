@@ -147,15 +147,15 @@ export const updateUserPermissions = async (userId, permissions) => {
 /**
  * Met à jour le rôle d'un utilisateur (seul le superAdmin peut faire cela)
  * @param {string|number} userId - ID de l'utilisateur
- * @param {string} role - Le nouveau rôle ('user', 'admin', 'superAdmin')
+ * @param {number} roleId - Le nouveau role_id (1=user, 2=admin, 3=superAdmin)
  * @returns {Promise<Object>} Promise qui résout avec l'utilisateur mis à jour
  */
-export const updateUserRole = async (userId, role) => {
+export const updateUserRole = async (userId, roleId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/users/${userId}/role`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ role }),
+      body: JSON.stringify({ role_id: roleId }),
     });
 
     if (!response.ok) {

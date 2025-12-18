@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import AddVideoButton from './button/addVideoButton';
 import LoginButton from './button/loginButton';
 import ProfileButton from './button/profileButton';
-import { getCurrentUser, getAuthToken, isAdmin } from '../utils/authUtils';
+import AdminButton from './button/adminButton';
+import SuperAdminButton from './button/superAdminButton';
+import { getCurrentUser, getAuthToken } from '../utils/authUtils';
 
 const Header = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userIsAdmin, setUserIsAdmin] = useState(false);
+  const [userRoleId, setUserRoleId] = useState(null);
 
   useEffect(() => {
     // Vérifier l'état de connexion au montage et lors des changements
@@ -16,7 +18,12 @@ const Header = () => {
       const user = getCurrentUser();
       const token = getAuthToken();
       setIsLoggedIn(!!(user && token));
-      setUserIsAdmin(isAdmin());
+      // Vérifier le role_id de l'utilisateur
+      if (user && user.role_id) {
+        setUserRoleId(user.role_id);
+      } else {
+        setUserRoleId(null);
+      }
     };
 
     checkAuth();
@@ -46,14 +53,8 @@ const Header = () => {
       </div>
       <div className="flex items-center gap-4">
         {isLoggedIn ? <ProfileButton /> : <LoginButton />}
-        {userIsAdmin && (
-          <button
-            onClick={() => navigate('/admin')}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-          >
-            Admin
-          </button>
-        )}
+        {userRoleId === 3 && <SuperAdminButton />}
+        {userRoleId === 2 && <AdminButton />}
         <AddVideoButton />
       </div>
     </header>
