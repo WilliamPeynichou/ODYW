@@ -19,7 +19,7 @@ export const canManageContent = (currentUser, contentOwner) => {
     if (currentRole === 'admin' && ownerRole === 'user') return true;
 
     // User peut gérer son propre contenu
-    if (currentRole.id === contentOwner.id) return true;
+    if (currentUser.id === contentOwner.id) return true;
 
     // Sinon accès refusé
     return false;
