@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { isSuperAdmin } from '../../../utils/authUtils';
 import {
   getAllUsers,
   updateUser,
   deleteUser,
   updateUserPermissions,
+  updateUserRole,
 } from '../../../service/adminService';
 
 const UserManagement = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,11 +67,16 @@ const UserManagement = () => {
 
     try {
       setError('');
-      // TODO: Une fois l'endpoint prêt, décommenter cette ligne
-      // await updateUser(editingUser.id, editingUser);
+      const updatedUser = { ...editingUser };
       
-      // Simulation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Si le rôle a changé et que l'utilisateur est superAdmin, utiliser updateUserRole
+      const originalUser = users.find(u => u.id === editingUser.id);
+      if (originalUser && originalUser.role !== editingUser.role && isSuperAdminUser) {
+        await updateUserRole(editingUser.id, editingUser.role);
+      } else {
+        // Sinon, utiliser updateUser normal
+        await updateUser(editingUser.id, updatedUser);
+      }
       
       setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
       setEditingUser(null);
@@ -272,6 +280,15 @@ const UserManagement = () => {
                       </div>
                     ) : (
                       <div className="flex justify-end gap-2">
+                        {(user.role === 'admin' || user.role === 'superAdmin') && (
+                          <button
+                            onClick={() => navigate('/admin')}
+                            className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors text-xs"
+                            title="Accéder au panneau d'administration"
+                          >
+                            Admin
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEditUser(user)}
                           className="text-blue-600 hover:text-blue-900"
