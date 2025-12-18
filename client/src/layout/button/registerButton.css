@@ -1,0 +1,83 @@
+.register-button {
+  --bg-color-1: #ff0000;
+  --bg-color-2: #860606;
+  --bg-color-3: #2f0000;
+  --padding: 1rem 2rem;
+  --font-family: monospace;
+  --step: 0.5rem;
+  --active: 0;
+  
+  color: white;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: bold;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.register-button:is(:hover, :focus-visible) {
+  --active: 1;
+}
+
+.register-button span:first-of-type {
+  padding: var(--padding);
+}
+
+.register-button span:not(:first-of-type) {
+  position: absolute;
+}
+
+.register-button [aria-hidden] {
+  color: transparent;
+}
+
+.register-button span {
+  inset: 0;
+  display: grid;
+  background: var(--bg);
+  place-items: center;
+  transition: 0.2s ease;
+  border: 2px solid black;
+  translate:
+    calc((var(--active) * var(--coefficient, 0)) * (var(--step) * -1))
+    calc((var(--active) * var(--coefficient, 0)) * (var(--step) * -1));
+}
+
+.register-button span:nth-of-type(1) {
+  --bg: var(--bg-color-3);
+}
+
+.register-button span:nth-of-type(2) {
+  --coefficient: 1;
+  --bg: var(--bg-color-2);
+}
+
+.register-button span:nth-of-type(3) {
+  --coefficient: 2;
+  --bg: var(--bg-color-1);
+}
+
+.register-button:active {
+  --active: 0.5;
+}
+
+INSERT INTO videos (title, theme_id, video_url, duration, size_mb, user_id) VALUES
+('Video 1765879419429', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765879419429.mp4', 30, 4.5, FLOOR(1 + RAND() * 10)),
+('Video 1765882626668', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765882626668.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765883952863', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765883952863.mov', 30, 9.6, FLOOR(1 + RAND() * 10)),
+('Video 1765883978393', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765883978393.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884008146', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884008146.mov', 30, 44.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884035731', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884035731.mov', 30, 35.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884056885', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884056885.mov', 30, 16.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884074573', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884074573.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765884093173', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765884093173.mov', 30, 22.0, FLOOR(1 + RAND() * 10)),
+('Video 1765887401551', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887401551.mp4', 30, 0.77, FLOOR(1 + RAND() * 10)),
+('Video 1765887559205', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887559205.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765887605296', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765887605296.mov', 30, 13.0, FLOOR(1 + RAND() * 10)),
+('Video 1765890309821', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765890309821.mov', 30, 43.0, FLOOR(1 + RAND() * 10)),
+('Video 1765892371981', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765892371981.mp4', 30, 0.77, FLOOR(1 + RAND() * 10)),
+('Video 1765896280160', FLOOR(1 + RAND() * 10), 'server/uploads/videos/1765896280160.mov', 30, 24.0, FLOOR(1 + RAND() * 10));
+
