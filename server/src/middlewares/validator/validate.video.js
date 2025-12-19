@@ -26,19 +26,17 @@ const updateVideoSchema = z.object({
     title: z
         // verifie que ce soit une string
         .string()
+        .trim()
         .min(1, { message: 'Le titre est requis' })
         .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
         .optional()
         .or(z.literal('').transform(() => undefined)),
     theme_id: z
-        // verifie que ce soit une string
-        .string()
-        // transformer la value en nombre/int
-        .transform((val) => parseInt(val, 10))
-        // verifie que la value est pas "not a number", donc si c'est un nombre valide et sup à 0
-        .refine((val) => !isNaN(val) && val > 0, {
-            message: 'Le thème est requis et doit être un nombre valide'
-        })
+        .union([
+            z.coerce.number().int().positive({ message: 'le thème est requis et doit etre un nombre valide'}),
+            z.literal('').transform(() => undefined),
+            z.null().transform(() => undefined),
+        ])
         .optional(),
 })
 

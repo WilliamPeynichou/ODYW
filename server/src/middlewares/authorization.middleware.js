@@ -26,7 +26,7 @@ export const checkOwnershipOrRole = (table) => {
             // Vérifie si l'utilisateur courant peut gérer ce contenu
             if (!canManageContent(req.user, contentOwner)) {
                 return res.status(403).json({
-                    error: 'Accès refusé'
+                    error: "Vous ne pouvez pas manipuler le contenu d'un autre utilisateur"
                 });
             }
 
