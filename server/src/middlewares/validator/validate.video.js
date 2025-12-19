@@ -26,15 +26,22 @@ const updateVideoSchema = z.object({
     title: z
         // verifie que ce soit une string
         .string()
+        // nettoie les espaces du debut et de la fin
         .trim()
         .min(1, { message: 'Le titre est requis' })
         .max(100, { message: 'Le titre ne doit pas dépasser 100 caractères' })
         .optional()
+        // si le titre est vide, on transforme en undefined
         .or(z.literal('').transform(() => undefined)),
     theme_id: z
+        // verifie que le thème est un nombre valide
+        // union permet d'accepter plusieurs formes possibles
         .union([
+            // s'assurer que c'est un nomnbre et positif
             z.coerce.number().int().positive({ message: 'le thème est requis et doit etre un nombre valide'}),
+            // si le thème est vide, on transforme en undefined
             z.literal('').transform(() => undefined),
+            // si le thème est null, on transforme en undefined
             z.null().transform(() => undefined),
         ])
         .optional(),

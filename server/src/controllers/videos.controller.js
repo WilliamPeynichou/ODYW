@@ -100,6 +100,14 @@ export const getVideoByIdController = async (req, res) => {
     try {
         // on récup le id de la video dans la requete
         const { id } = req.params;
+
+        // verif si l'id est un nombre valide
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "l'identifiant de la vidéo doit être un nombre valide"
+            });
+        }
+
         // video attend la promise de la fonction getVideoById avec id en param
         const video = await getVideoById(id);
 
@@ -128,9 +136,14 @@ export const updateVideoController = async (req, res) => {
         // récupérer l'id de la vidéo dans les paramètres
         const { id } = req.params;
 
-        // Le middleware checkOwnershipOrRole a déjà vérifié les permissions
-        // Vérifier que la vidéo existe
-        const existingVideo = await getVideoById(id);
+        // verif si l'id est un nombre valide
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "l'identifiant de la vidéo doit être un nombre valide"
+            });
+        }
+
+        // Le middleware checkOwnershipOrRole a déjà vérifié les permission
 
         // variable pour stocker les données à mettre à jour
         const updateData = {};
