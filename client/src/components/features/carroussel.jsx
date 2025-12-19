@@ -40,7 +40,7 @@ const Carrousel = ({ videos = [] }) => {
           title: video.title || 'Sans titre',
           description: video.description || '',
           url: video.video_url ? `http://localhost:3000/${video.video_url}` : null,
-          thumbnail: null, // Pas de thumbnail pour l'instant
+          thumbnail: null,
         }));
 
         // Filtrer les vidéos qui ont une URL valide
