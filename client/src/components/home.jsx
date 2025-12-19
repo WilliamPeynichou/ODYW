@@ -14,7 +14,6 @@ const Home = () => {
     const loadVideos = async () => {
       try {
         setLoading(true);
-        // Pour l'instant, tableau vide - les vidéos de test sont dans le carrousel
         setVideos([]);
       } catch (error) {
         console.error('Erreur lors du chargement des vidéos:', error);
@@ -33,8 +32,8 @@ const Home = () => {
       <VideoIntro />
 
       {/* 2. Le contenu qui scrolle par-dessus */}
-      {/* mt-[100vh] pousse le contenu en bas de l'écran initialement */}
-      <div className="relative z-10 mt-[100vh]">
+      {/* mt-[200vh] pousse le contenu après 2 fenêtres (2 phases de scroll) */}
+      <div className="relative z-10 mt-[200vh]">
         
         {/* Container principal avec fond blanc et effet de carte */}
         <div className="bg-white min-h-screen rounded-t-[2.5rem] shadow-[0_-20px_60px_rgba(0,0,0,0.5)]">

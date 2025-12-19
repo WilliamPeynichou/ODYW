@@ -45,13 +45,13 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="flex w-full items-center justify-between bg-white px-4 py-3">
+    <header className="flex w-full items-center justify-between bg-white px-2 sm:px-4 py-2 sm:py-3">
       <div className="flex items-center">
-        <a href="/" className="text-xl font-normal text-gray-900">
+        <a href="/" className="text-lg sm:text-xl font-normal text-gray-900">
           ODYWP
         </a>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {isLoggedIn ? <ProfileButton /> : <LoginButton />}
         {userRoleId === 3 && <SuperAdminButton />}
         {userRoleId === 2 && <AdminButton />}
